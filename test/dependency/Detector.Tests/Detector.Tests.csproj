@@ -21,19 +21,4 @@
     <Using Include="NUnit.Framework" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Video\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\src\dependency\MediaLoader.FFMpeg\MediaLoader.FFMpeg.csproj" />
-    <ProjectReference Include="..\..\..\src\dependency\MediaLoader.OpenCV\MediaLoader.OpenCV.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="Video\video1.avi">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
 </Project>

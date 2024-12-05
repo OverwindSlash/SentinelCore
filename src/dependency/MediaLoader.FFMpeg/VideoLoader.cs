@@ -94,6 +94,10 @@ namespace MediaLoader.FFMpeg
 
             // 获取帧率（avg_frame_rate）
             FrameRate = ffmpeg.av_q2d(stream->avg_frame_rate); // 转换为浮动数字
+            if (double.IsNaN(FrameRate))
+            {
+                FrameRate = 25;
+            }
 
             // 获取帧总数（nb_frames）
             FrameCount = stream->nb_frames;
@@ -112,11 +116,12 @@ namespace MediaLoader.FFMpeg
             if (useHardwareAcceleration)
             {
                 // Replace with the appropriate hardware acceleration configuration (e.g., "cuda" or "dxva2")
-                var hwDeviceType = ffmpeg.av_hwdevice_find_type_by_name("cuda");
-                if (ffmpeg.avcodec_get_hw_config(codec, 0)->device_type == hwDeviceType)
+                var hwDeviceType = ffmpeg.av_hwdevice_find_type_by_name("dxva2");
+                var avhwDeviceType = ffmpeg.avcodec_get_hw_config(codec, 0)->device_type;
+                if (avhwDeviceType == hwDeviceType)
                 {
-                    codecContext->hw_device_ctx = ffmpeg.av_hwdevice_ctx_alloc(hwDeviceType);
-                    ffmpeg.av_hwdevice_ctx_init(codecContext->hw_device_ctx);
+                    /*codecContext->hw_device_ctx = ffmpeg.av_hwdevice_ctx_alloc(hwDeviceType);
+                    ffmpeg.av_hwdevice_ctx_init(codecContext->hw_device_ctx);*/
                 }
                 else
                 {
@@ -179,10 +184,9 @@ namespace MediaLoader.FFMpeg
                 }
 
                 long elapsedTimeMs = stopwatch.ElapsedMilliseconds;
-                //Console.WriteLine(FrameMilliSec - elapsedTimeMs);
-                //Console.WriteLine($"EM:{elapsedTimeMs}");
+                //Console.WriteLine($"FM:{FrameMilliSec} EM:{elapsedTimeMs} Diff:{FrameMilliSec - elapsedTimeMs}");
 
-                var sleepMilliSec = (int)Math.Min(interval, FrameMilliSec - elapsedTimeMs);
+                var sleepMilliSec = (int)Math.Min(100, FrameMilliSec - elapsedTimeMs);
                 if (sleepMilliSec > 0)
                 {
                     Thread.Sleep(sleepMilliSec);

@@ -350,7 +350,7 @@ namespace MediaLoader.Tests
         [Test]
         public async Task Test_Play_RtspStream_CheckTimeOffset()
         {
-            int intervalThresh = 10;
+            int intervalThresh = 3;
 
             int bufferSize = 50;
             using var loader = new VideoLoader("tempId", bufferSize);

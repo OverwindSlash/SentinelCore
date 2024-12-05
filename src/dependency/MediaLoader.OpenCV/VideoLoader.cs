@@ -26,7 +26,7 @@ public class VideoLoader : IVideoLoader
     {
         _deviceId = deviceId;
         _capture = new VideoCapture();
-        _videoCapturePara = new VideoCapturePara(VideoAccelerationType.D3D11, 0);
+        _videoCapturePara = new VideoCapturePara(VideoAccelerationType.Any, 0);
         _videoSpecs = new VideoSpecs(string.Empty, 0, 0, 0, 0);
         _frameBuffer = new ConcurrentBoundedQueue<Frame>(bufferSize);
         _isInPlaying = false;
@@ -121,7 +121,9 @@ public class VideoLoader : IVideoLoader
             var offsetMilliSec = (long)_capture.Get(VideoCaptureProperties.PosMsec);
 
             long elapsedTimeMs = stopwatch.ElapsedMilliseconds;
-            var sleepMilliSec = (int)Math.Min(30, offsetMilliSec - elapsedTimeMs);
+            var sleepMilliSec = (int)Math.Min(100, offsetMilliSec - elapsedTimeMs);
+
+            //Console.WriteLine($"FM:{offsetMilliSec} EM:{elapsedTimeMs} Diff:{offsetMilliSec - elapsedTimeMs}");
 
             if (sleepMilliSec > 0)
             {
