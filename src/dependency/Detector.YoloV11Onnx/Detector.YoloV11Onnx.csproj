@@ -16,10 +16,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Models\yolov5.json">
+    <None Update="Images\Traffic_001.jpg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Models\yolov5m.onnx">
+    <None Update="Models\yolo11m.onnx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Models\yolov11.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

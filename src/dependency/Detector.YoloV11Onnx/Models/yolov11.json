@@ -1,0 +1,151 @@
+{
+  "Width": 640,
+  "Height": 640,
+  "Depth": 3,
+  "Dimensions": 85,
+  "Strides": [
+    8,
+    16,
+    32
+  ],
+  "Anchors": [
+    [
+      [
+        10,
+        13
+      ],
+      [
+        16,
+        30
+      ],
+      [
+        33,
+        23
+      ]
+    ],
+    [
+      [
+        30,
+        61
+      ],
+      [
+        62,
+        45
+      ],
+      [
+        59,
+        119
+      ]
+    ],
+    [
+      [
+        116,
+        90
+      ],
+      [
+        156,
+        198
+      ],
+      [
+        373,
+        326
+      ]
+    ]
+  ],
+  "Shapes": [
+    80,
+    40,
+    20
+  ],
+  "Confidence": 0.2,
+  "MulConfidence": 0.25,
+  "Overlap": 0.45,
+  "Channels": 3,
+  "BatchSize": 1,
+  "Outputs": [
+    "output0"
+  ],
+  "Input": "images",
+  "Names": [
+    "person",
+    "bicycle",
+    "car",
+    "motorcycle",
+    "airplane",
+    "bus",
+    "train",
+    "truck",
+    "boat",
+    "trafficlight",
+    "firehydrant",
+    "stopsign",
+    "parkingmeter",
+    "bench",
+    "bird",
+    "cat",
+    "dog",
+    "horse",
+    "sheep",
+    "cow",
+    "elephant",
+    "bear",
+    "zebra",
+    "giraffe",
+    "backpack",
+    "umbrella",
+    "handbag",
+    "tie",
+    "suitcase",
+    "frisbee",
+    "skis",
+    "snowboard",
+    "sportsball",
+    "kite",
+    "baseballbat",
+    "baseballglove",
+    "skateboard",
+    "surfboard",
+    "tennisracket",
+    "bottle",
+    "wineglass",
+    "cup",
+    "fork",
+    "knife",
+    "spoon",
+    "bowl",
+    "banana",
+    "apple",
+    "sandwich",
+    "orange",
+    "broccoli",
+    "carrot",
+    "hotdog",
+    "pizza",
+    "donut",
+    "cake",
+    "chair",
+    "couch",
+    "pottedplant",
+    "bed",
+    "diningtable",
+    "toilet",
+    "tv",
+    "laptop",
+    "mouse",
+    "remote",
+    "keyboard",
+    "cellphone",
+    "microwave",
+    "oven",
+    "toaster",
+    "sink",
+    "refrigerator",
+    "book",
+    "clock",
+    "vase",
+    "scissors",
+    "teddybear",
+    "hairdrier",
+    "toothbrush"
+  ]
+}

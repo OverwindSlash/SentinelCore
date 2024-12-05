@@ -7,10 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="OpenCvSharp4.runtime.win" Version="4.10.0.20241108" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\..\domain\SentinelCore.Domain\SentinelCore.Domain.csproj" />
   </ItemGroup>
 
