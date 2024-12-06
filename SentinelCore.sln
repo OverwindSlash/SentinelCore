@@ -51,6 +51,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "3.Domain", "3.Domain", "{93
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SentinelCore.Domain.Tests", "test\domain\SentinelCore.Domain.Tests\SentinelCore.Domain.Tests.csproj", "{24036A93-8CFB-4D00-87FA-BB51D8BE11DA}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SnapshotManager", "SnapshotManager", "{0699A4A2-878F-4D42-9F94-DEADA94D1F18}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SnapshotManager.InMemory", "src\dependency\SnapshotManager.InMemory\SnapshotManager.InMemory.csproj", "{B456648F-6F00-47AB-84C3-AC8600A9B89C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -101,6 +105,10 @@ Global
 		{24036A93-8CFB-4D00-87FA-BB51D8BE11DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{24036A93-8CFB-4D00-87FA-BB51D8BE11DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{24036A93-8CFB-4D00-87FA-BB51D8BE11DA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B456648F-6F00-47AB-84C3-AC8600A9B89C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B456648F-6F00-47AB-84C3-AC8600A9B89C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B456648F-6F00-47AB-84C3-AC8600A9B89C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B456648F-6F00-47AB-84C3-AC8600A9B89C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -128,6 +136,8 @@ Global
 		{3E1F52EA-9951-4F85-A7FF-FB4C5B7725B7} = {3BD958D1-2EA4-4025-8C23-6EDFD6637B61}
 		{9356AD10-DE8C-4777-B952-D084F74C6588} = {93B987C1-C526-46F3-8503-1B758E24981E}
 		{24036A93-8CFB-4D00-87FA-BB51D8BE11DA} = {9356AD10-DE8C-4777-B952-D084F74C6588}
+		{0699A4A2-878F-4D42-9F94-DEADA94D1F18} = {E5C4B30B-7DD1-4E89-A963-F884E06320D8}
+		{B456648F-6F00-47AB-84C3-AC8600A9B89C} = {0699A4A2-878F-4D42-9F94-DEADA94D1F18}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9572C7DE-17AC-40C7-A46E-C2E48064E3F9}

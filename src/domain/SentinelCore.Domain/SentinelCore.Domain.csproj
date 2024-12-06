@@ -13,6 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Abstractions\EventHandler\" />
     <Folder Include="DataStructures\" />
     <Folder Include="Entities\AnalysisDefinitions\Geometrics\" />
   </ItemGroup>
