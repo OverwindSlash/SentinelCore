@@ -55,6 +55,7 @@ namespace SentinelCore.Domain.Entities.ObjectDetection
         #endregion
 
         public bool IsUnderAnalysis { get; set; }
+        public int LaneIndex { get; set; }
 
         private Dictionary<string, object> _customizeProperties = new();
 

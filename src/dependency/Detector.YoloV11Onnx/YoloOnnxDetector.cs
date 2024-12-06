@@ -1,13 +1,11 @@
 ﻿using Microsoft.ML.OnnxRuntime;
 using OpenCvSharp;
-using OpenCvSharp.Extensions;
 using SentinelCore.Domain.Abstractions.ObjectDetector;
 using SentinelCore.Domain.Entities.ObjectDetection;
-using System.Drawing;
 
-namespace Detector.YoloV5Onnx
+namespace Detector.YoloV11Onnx
 {
-    public class YoloV5OnnxDetector : IObjectDetector
+    public class YoloOnnxDetector : IObjectDetector
     {
         private YoloPredictor _predictor;
         private List<string> _names = new();
@@ -68,8 +66,7 @@ namespace Detector.YoloV5Onnx
 
         public List<BoundingBox> Detect(Mat image, float thresh = 0.5f)
         {
-            YoloPrediction[] detectedObjects = _predictor.Predict(image.ToBitmap(), thresh).ToArray();
-            //YoloPrediction[] detectedObjects = _predictor.Predict(image, thresh).ToArray();
+            YoloPrediction[] detectedObjects = _predictor.Predict(image, thresh).ToArray();
 
             return GenerateBoundingBoxes(detectedObjects);
         }
@@ -101,32 +98,35 @@ namespace Detector.YoloV5Onnx
         {
             using MemoryStream stream = new MemoryStream(imageData);
 
-            Bitmap bitmap = new Bitmap(stream);
+            var image = Mat.FromStream(stream, ImreadModes.AnyColor);
 
-            YoloPrediction[] detectedObjects = _predictor.Predict(bitmap, thresh).ToArray();
+            YoloPrediction[] detectedObjects = _predictor.Predict(image, thresh).ToArray();
 
             return GenerateBoundingBoxes(detectedObjects);
         }
 
         public List<BoundingBox> Detect(string imageFile, float thresh = 0.5f)
         {
-            Bitmap bitmap = new Bitmap(imageFile);
+            var image = Cv2.ImRead(imageFile);
 
-            YoloPrediction[] detectedObjects = _predictor.Predict(bitmap, thresh).ToArray();
+            YoloPrediction[] detectedObjects = _predictor.Predict(image, thresh).ToArray();
 
             return GenerateBoundingBoxes(detectedObjects);
         }
 
         public void Close()
         {
+
         }
 
         public void CleanupEnv()
         {
+
         }
 
         public void Dispose()
         {
+
         }
     }
 }

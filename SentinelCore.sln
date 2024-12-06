@@ -47,6 +47,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "RegionManager", "RegionMana
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RegionManager.DefinitionBased", "src\dependency\RegionManager.DefinitionBased\RegionManager.DefinitionBased.csproj", "{3E1F52EA-9951-4F85-A7FF-FB4C5B7725B7}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "3.Domain", "3.Domain", "{9356AD10-DE8C-4777-B952-D084F74C6588}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SentinelCore.Domain.Tests", "test\domain\SentinelCore.Domain.Tests\SentinelCore.Domain.Tests.csproj", "{24036A93-8CFB-4D00-87FA-BB51D8BE11DA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -93,6 +97,10 @@ Global
 		{3E1F52EA-9951-4F85-A7FF-FB4C5B7725B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3E1F52EA-9951-4F85-A7FF-FB4C5B7725B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3E1F52EA-9951-4F85-A7FF-FB4C5B7725B7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{24036A93-8CFB-4D00-87FA-BB51D8BE11DA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{24036A93-8CFB-4D00-87FA-BB51D8BE11DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{24036A93-8CFB-4D00-87FA-BB51D8BE11DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{24036A93-8CFB-4D00-87FA-BB51D8BE11DA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -118,6 +126,8 @@ Global
 		{A7EA5562-5212-42CD-A41E-FB63A7E6362B} = {DB4036AD-78E6-4656-8B08-903356017BDF}
 		{3BD958D1-2EA4-4025-8C23-6EDFD6637B61} = {E5C4B30B-7DD1-4E89-A963-F884E06320D8}
 		{3E1F52EA-9951-4F85-A7FF-FB4C5B7725B7} = {3BD958D1-2EA4-4025-8C23-6EDFD6637B61}
+		{9356AD10-DE8C-4777-B952-D084F74C6588} = {93B987C1-C526-46F3-8503-1B758E24981E}
+		{24036A93-8CFB-4D00-87FA-BB51D8BE11DA} = {9356AD10-DE8C-4777-B952-D084F74C6588}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9572C7DE-17AC-40C7-A46E-C2E48064E3F9}

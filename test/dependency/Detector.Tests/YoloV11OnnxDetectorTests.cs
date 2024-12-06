@@ -9,11 +9,11 @@ namespace Detector.Tests
     {
         private string ModelPath = @"Models/yolo11m.onnx";
         private string ModelConfig = @"Models/yolov11.json";
-        private readonly YoloV11OnnxDetector _detector;
+        private readonly YoloOnnxDetector _detector;
 
         public YoloV11OnnxDetectorTests()
         {
-            _detector = new YoloV11OnnxDetector();
+            _detector = new YoloOnnxDetector();
 
             _detector.PrepareEnv();
             _detector.Init(new Dictionary<string, string>()
