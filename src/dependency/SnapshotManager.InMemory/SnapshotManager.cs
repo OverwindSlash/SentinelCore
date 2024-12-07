@@ -3,24 +3,33 @@ using SentinelCore.Domain.Abstractions.SnapshotManager;
 using SentinelCore.Domain.Entities.ObjectDetection;
 using SentinelCore.Domain.Entities.VideoStream;
 using System.Collections.Concurrent;
+using MessagePipe;
+using SentinelCore.Domain.Abstractions.EventHandler;
+using SentinelCore.Domain.Events.AnalysisEngine;
+using SentinelCore.Domain.Utils.Extensions;
 
 namespace SnapshotManager.InMemory
 {
-    public class SnapshotManager : ISnapshotManager
+    public class SnapshotManager : ISnapshotManager, IEventSubscriber<ObjectExpiredEvent>, IEventSubscriber<FrameExpiredEvent>
     {
         // frameId -> Scene
         private readonly ConcurrentDictionary<long, Mat> _scenesOfFrame;
-
         // object snapshot list by objId -> (factor, objectMat)
         private readonly ConcurrentDictionary<string, SortedList<float, Mat>> _snapshotsByScore;
 
-        private string _snapshotsDir = "Snapshots";
+        private readonly string _snapshotsDir = "Snapshots";
         private bool _saveBestSnapshot = false;
         private int _maxObjectSnapshots = 10;
         private int _minSnapshotWidth = 40;
         private int _maxSnapshotHeight = 40;
 
         public string Name => "In-memory snapshot manager";
+
+        private ISubscriber<ObjectExpiredEvent> _oeSubscriber;
+        private IDisposable _disposableOeSubscriber;
+
+        private ISubscriber<FrameExpiredEvent> _feSubscriber;
+        private IDisposable _disposableFeSubscriber;
 
         public SnapshotManager(Dictionary<string, string> preferences)
         {
@@ -33,14 +42,8 @@ namespace SnapshotManager.InMemory
             _minSnapshotWidth = int.Parse(preferences["MinSnapshotWidth"]);
             _maxSnapshotHeight = int.Parse(preferences["MinSnapshotHeight"]);
 
-            var currentDirectory = Directory.GetCurrentDirectory();
-            var combine = Path.Combine(currentDirectory, _snapshotsDir);
-            var exists = Directory.Exists(combine);
-
-            if (!exists)
-            {
-                Directory.CreateDirectory(_snapshotsDir);
-            }
+            var snapshotFullPath = Path.Combine(Directory.GetCurrentDirectory(), _snapshotsDir);
+            snapshotFullPath.EnsureDirExistence();
         }
 
         public void ProcessSnapshots(Frame frame)
@@ -49,7 +52,7 @@ namespace SnapshotManager.InMemory
             AddSnapshotOfObjectById(frame);
         }
 
-        public void AddSceneByFrameId(long frameId, Frame frame)
+        private void AddSceneByFrameId(long frameId, Frame frame)
         {
             if (!_scenesOfFrame.ContainsKey(frameId))
             {
@@ -57,23 +60,7 @@ namespace SnapshotManager.InMemory
             }
         }
 
-        public Mat GetSceneByFrameId(long frameId)
-        {
-            if (_scenesOfFrame.ContainsKey(frameId))
-            {
-                _scenesOfFrame.TryGetValue(frameId, out var scene);
-                return scene;
-            }
-
-            return new Mat();
-        }
-
-        public int GetCachedSceneCount()
-        {
-            return _scenesOfFrame.Count;
-        }
-
-        public void AddSnapshotOfObjectById(Frame frame)
+        private void AddSnapshotOfObjectById(Frame frame)
         {
             foreach (var obj in frame.DetectedObjects)
             {
@@ -86,14 +73,7 @@ namespace SnapshotManager.InMemory
             }
         }
 
-        private float CalculateFactor(DetectedObject obj)
-        {
-            // Area as order factor.
-            return obj.Width * obj.Height;
-            // return obj.Width;
-        }
-
-        public void AddSnapshotOfObjectById(string objId, float score, Frame frame, BoundingBox bboxs)
+        private void AddSnapshotOfObjectById(string objId, float score, Frame frame, BoundingBox bboxs)
         {
             if (!_snapshotsByScore.ContainsKey(objId))
             {
@@ -122,6 +102,29 @@ namespace SnapshotManager.InMemory
             }
         }
 
+        private float CalculateFactor(DetectedObject obj)
+        {
+            // Area as order factor.
+            return obj.Width * obj.Height;
+            // return obj.Width;
+        }
+
+        public Mat GetSceneByFrameId(long frameId)
+        {
+            if (_scenesOfFrame.ContainsKey(frameId))
+            {
+                _scenesOfFrame.TryGetValue(frameId, out var scene);
+                return scene;
+            }
+
+            return new Mat();
+        }
+
+        public int GetCachedSceneCount()
+        {
+            return _scenesOfFrame.Count;
+        }
+
         public SortedList<float, Mat> GetObjectSnapshotsByObjectId(string id)
         {
             if (!_snapshotsByScore.ContainsKey(id))
@@ -141,8 +144,43 @@ namespace SnapshotManager.InMemory
         {
             return frame.Scene.SubMat(new Rect(bboxs.X, bboxs.Y, bboxs.Width, bboxs.Height)).Clone();
         }
+        
+        private void ReleaseSceneByFrameId(long frameId)
+        {
+            if (_scenesOfFrame.ContainsKey(frameId))
+            {
+                _scenesOfFrame[frameId].Dispose();
 
-        /*private void SaveBestSnapshot(string id, Mat highestSnapshot)
+                _scenesOfFrame.TryRemove(frameId, out var mat);
+            }
+        }
+
+        private void ReleaseSnapshotsByObjectId(string id, bool saveBeforeRelease = true)
+        {
+            if (!_snapshotsByScore.ContainsKey(id))
+            {
+                return;
+            }
+
+            SortedList<float, Mat> snapshots = _snapshotsByScore[id];
+
+            if (saveBeforeRelease)
+            {
+                var highestScore = snapshots.Keys.Max();
+                Mat highestSnapshot = snapshots[highestScore];
+
+                SaveBestSnapshot(id, highestSnapshot);
+            }
+
+            foreach (Mat snapshot in snapshots.Values)
+            {
+                snapshot.Dispose();
+            }
+
+            _snapshotsByScore.TryRemove(id, out var removedSnapshots);
+        }
+
+        private void SaveBestSnapshot(string id, Mat highestSnapshot)
         {
             string timestamp = DateTime.Now.ToString("yyyyMMddHHmmss");
             string filename = id.Replace(':', '_');
@@ -154,7 +192,36 @@ namespace SnapshotManager.InMemory
 
                 highestSnapshot.SaveImage(fileSavePath);
             }
-        }*/
+        }
+
+        public void SetSubscriber(ISubscriber<ObjectExpiredEvent> subscriber)
+        {
+            _oeSubscriber = subscriber;
+            _disposableOeSubscriber = _oeSubscriber.Subscribe(ProcessEvent);
+        }
+
+        public void ProcessEvent(ObjectExpiredEvent @event)
+        {
+            Task.Run(() =>
+            {
+                ReleaseSnapshotsByObjectId(@event.Id, _saveBestSnapshot);
+                ReleaseSnapshotsByObjectId($"cb_{@event.Id}", _saveBestSnapshot);
+            }).Wait();
+        }
+
+        public void SetSubscriber(ISubscriber<FrameExpiredEvent> subscriber)
+        {
+            _feSubscriber = subscriber;
+            _disposableFeSubscriber = _feSubscriber.Subscribe(ProcessEvent);
+        }
+
+        public void ProcessEvent(FrameExpiredEvent @event)
+        {
+            Task.Run(() =>
+            {
+                ReleaseSceneByFrameId(@event.FrameId);
+            }).Wait();
+        }
 
         public void Dispose()
         {
@@ -162,6 +229,9 @@ namespace SnapshotManager.InMemory
             {
                 scene.Dispose();
             }
+
+            _disposableOeSubscriber.Dispose();
+            _disposableFeSubscriber.Dispose();
         }
     }
 }
