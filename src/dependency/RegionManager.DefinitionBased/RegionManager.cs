@@ -9,7 +9,7 @@ using System.Collections.Concurrent;
 
 namespace RegionManager.DefinitionBased
 {
-    public class RegionManager : IRegionManager, IEventSubscriber<ObjectExpiredEvent>
+    public class RegionManager : IRegionManager
     {
         public const int NoNeedToCalculateLane = -1;
         public const int NotInAnyLaneIndex = 0;

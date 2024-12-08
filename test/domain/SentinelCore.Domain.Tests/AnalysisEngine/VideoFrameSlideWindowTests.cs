@@ -429,7 +429,10 @@ public class VideoFrameSlideWindowTests
         var objEventSubscriber3 = Substitute.For<IEventSubscriber<ObjectExpiredEvent>>();
 
         _objExpiredSubscriber3.Subscribe(x => objEventSubscriber3.ProcessEvent(x));
-        //_baseEventSubscriber.Subscribe(e => Console.WriteLine("baseSubsriber:" + e.EventId));
+        
+        // var baseEventSubscriber = Substitute.For<IEventSubscriber<EventBase>>();
+        // baseEventSubscriber.SetSubscriber(_baseEventSubscriber);
+        // _baseEventSubscriber.Subscribe(e => Console.WriteLine("baseSubsriber:" + e.EventId));
 
         // frame 1: car1
         var frame1 = CreateFrame1();

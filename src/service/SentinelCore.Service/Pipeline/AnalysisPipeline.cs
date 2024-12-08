@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using MessagePipe;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using OpenCvSharp;
 using SentinelCore.Domain.Abstractions.MediaLoader;
@@ -9,8 +10,11 @@ using SentinelCore.Domain.Abstractions.SnapshotManager;
 using SentinelCore.Domain.Entities.AnalysisDefinitions.Geometrics;
 using SentinelCore.Domain.Entities.AnalysisEngine;
 using SentinelCore.Domain.Entities.VideoStream;
+using SentinelCore.Domain.Events.AnalysisEngine;
 using SentinelCore.Service.Pipeline.Settings;
 using System.Reflection;
+using SentinelCore.Domain.Abstractions.AnalysisHandler;
+using SentinelCore.Domain.Events;
 
 namespace SentinelCore.Service.Pipeline
 {
@@ -38,15 +42,22 @@ namespace SentinelCore.Service.Pipeline
         private IObjectTracker _objectTracker;
         private IRegionManager _regionManager;
         private ISnapshotManager _snapshotManager;
+        private List<IAnalysisHandler> _analysisHandlers;
+
+        public string DeviceName => _pipeLineSettings.DeviceName;
+        public ISnapshotManager SnapshotManager => _snapshotManager;
 
         public AnalysisPipeline(IConfiguration config)
         {
             LoadAllSettings(config);
 
-            _slideWindow = new VideoFrameSlideWindow(_pipeLineSettings.FrameLifetime);
-            _analyzedFrameBuffer = new VideoFrameBuffer(_pipeLineSettings.FrameLifetime);
-
             RegisterComponents();
+
+            _slideWindow = new VideoFrameSlideWindow(_pipeLineSettings.FrameLifetime);
+            _slideWindow.SetPublisher(_provider.GetRequiredService<IPublisher<FrameExpiredEvent>>());
+            _slideWindow.SetPublisher(_provider.GetRequiredService<IPublisher<ObjectExpiredEvent>>());
+
+            _analyzedFrameBuffer = new VideoFrameBuffer(_pipeLineSettings.FrameLifetime);
         }
 
         private void LoadAllSettings(IConfiguration config)
@@ -73,7 +84,7 @@ namespace SentinelCore.Service.Pipeline
 
             var mediaLoader = CreateInstance<IVideoLoader>(
                 _mediaLoaderSettings.AssemblyFile, _mediaLoaderSettings.FullQualifiedClassName,
-                new object?[] { _mediaLoaderSettings.Parameters[0], int.Parse(_mediaLoaderSettings.Parameters[1]) });
+                new object?[] { _pipeLineSettings.DeviceName, int.Parse(_mediaLoaderSettings.Parameters[0]) });
             _services.AddTransient<IVideoLoader>(sp => mediaLoader);
 
             var detector = CreateInstance<IObjectDetector>(
@@ -100,16 +111,16 @@ namespace SentinelCore.Service.Pipeline
             var subscriber = CreateInstance<IDomainEventSubscriber>(
                 _eventSubscriberSettings.AssemblyFile, _eventSubscriberSettings.FullQualifiedClassName,
                 new object?[] { _eventSubscriberSettings.Preferences });
-            _services.AddTransient<IDomainEventSubscriber>(sp => subscriber);
+            _services.AddTransient<IDomainEventSubscriber>(sp => subscriber);*/
 
             foreach (var setting in _analysisHandlerSettings)
             {
                 var handler = CreateInstance<IAnalysisHandler>(setting.AssemblyFile, setting.FullQualifiedClassName,
-                    new object?[] { setting.Preferences });
+                    new object?[] { this, setting.Preferences });
                 _services.AddTransient<IAnalysisHandler>(sp => handler);
             }
 
-            foreach (var setting in _jsonMsgPosterSettings)
+            /*foreach (var setting in _jsonMsgPosterSettings)
             {
                 var jsonMsgPoster = CreateInstance<IJsonMsgPoster>(setting.AssemblyFile, setting.FullQualifiedClassName,
                     new object?[] { setting.DestinationUrl, setting.Preferences });
@@ -143,9 +154,6 @@ namespace SentinelCore.Service.Pipeline
 
             var videoTask = Task.Run(() =>
             {
-                _videoLoader.Open(_pipeLineSettings.Uri);
-                _regionManager.LoadAnalysisDefinition(_regionManagerSettings.Parameters[0],
-                    _videoLoader.Width, _videoLoader.Height);
                 _videoLoader.Play(_mediaLoaderSettings.VideoStride);
             });
 
@@ -185,6 +193,7 @@ namespace SentinelCore.Service.Pipeline
         private void InitializeComponents()
         {
             _videoLoader = _provider.GetService<IVideoLoader>();
+            _videoLoader.Open(_pipeLineSettings.Uri);
 
             _objectDetector = _provider.GetService<IObjectDetector>();
             _objectDetector.Init(new Dictionary<string, string>() {
@@ -194,11 +203,12 @@ namespace SentinelCore.Service.Pipeline
                 {"gpu_id", _detectorSettings.GpuId.ToString()}
             });
 
-            _objectTracker = _provider.GetService<IObjectTracker>();
-
             _regionManager = _provider.GetService<IRegionManager>();
-            /*_regionManager.LoadAnalysisDefinition(_regionManagerSettings.Parameters[0], 
-                _videoLoader.MediaWidth, _videoLoader.MediaHeight);*/
+            
+            _regionManager.LoadAnalysisDefinition(_regionManagerSettings.Parameters[0],
+                _videoLoader.Width, _videoLoader.Height);
+
+            _objectTracker = _provider.GetService<IObjectTracker>();
 
             _snapshotManager = _provider.GetService<ISnapshotManager>();
 
@@ -209,28 +219,28 @@ namespace SentinelCore.Service.Pipeline
 
             _eventSubscriber = _provider.GetService<IDomainEventSubscriber>();
             _eventSubscriber.SetSubscriber(_provider.GetRequiredService<ISubscriber<DomainEvent>>());
-            _eventSubscriber.SetJsonPosters(_jsonMsgGenerators);
+            _eventSubscriber.SetJsonPosters(_jsonMsgGenerators);*/
 
             _analysisHandlers = _provider.GetServices<IAnalysisHandler>().ToList();
-            _analysisHandlers.ForEach(handler => { _slideWindow.Subscribe((IObserver<FrameExpiredEvent>)handler); });
-            _analysisHandlers.ForEach(handler => { _slideWindow.Subscribe((IObserver<ObjectExpiredEvent>)handler); });
-            _analysisHandlers.ForEach(handler => { handler.DeviceName = _pipeLineSettings.DeviceName; });
-            _analysisHandlers.ForEach(handler => { handler.SetSnapshot(_snapshot); });
-            _analysisHandlers.ForEach(handler => { handler.SetDomainEventPublisher(_eventPublisher); });
 
-            // 最后再由_snapshot 组件处理对象和帧过期事件
-            _slideWindow.Subscribe((IObserver<FrameExpiredEvent>)_snapshot);
-            _slideWindow.Subscribe((IObserver<ObjectExpiredEvent>)_snapshot);*/
+            _analysisHandlers.ForEach(handler => handler.SetSubscriber(_provider.GetRequiredService<ISubscriber<FrameExpiredEvent>>()));
+            _analysisHandlers.ForEach(handler => handler.SetSubscriber(_provider.GetRequiredService<ISubscriber<ObjectExpiredEvent>>()));
+
+            _regionManager.SetSubscriber(_provider.GetRequiredService<ISubscriber<ObjectExpiredEvent>>());
+
+            // 最后再由_snapshot 组件处理对象和帧过期事件, 以防止分析过程中截图被清理
+            _snapshotManager.SetSubscriber(_provider.GetRequiredService<ISubscriber<FrameExpiredEvent>>());
+            _snapshotManager.SetSubscriber(_provider.GetRequiredService<ISubscriber<ObjectExpiredEvent>>());
         }
 
         private Frame Analyze(Frame frame)
         {
-            /*foreach (IAnalysisHandler handler in _analysisHandlers)
+            foreach (IAnalysisHandler handler in _analysisHandlers)
             {
                 var analysisResult = handler.Analyze(frame);
 
                 // TODO with result.
-            }*/
+            }
 
             _slideWindow.AddNewFrame(frame);
 

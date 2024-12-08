@@ -61,6 +61,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SentinelCore.Service", "src
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SentinelCore.Service.Tests", "test\service\SentinelCore.Service.Tests\SentinelCore.Service.Tests.csproj", "{588E6574-6DA1-4F64-A3FC-0364CA7FCE12}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "6.Handler", "6.Handler", "{C9484707-BAFA-4449-BC7A-FE2B0A66FCE9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Handler.MultiOccurrence", "src\handler\Handler.MultiOccurrence\Handler.MultiOccurrence.csproj", "{BED2D5B0-3DB5-4560-BB83-6BFE3BA92274}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -123,6 +127,10 @@ Global
 		{588E6574-6DA1-4F64-A3FC-0364CA7FCE12}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{588E6574-6DA1-4F64-A3FC-0364CA7FCE12}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{588E6574-6DA1-4F64-A3FC-0364CA7FCE12}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BED2D5B0-3DB5-4560-BB83-6BFE3BA92274}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BED2D5B0-3DB5-4560-BB83-6BFE3BA92274}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BED2D5B0-3DB5-4560-BB83-6BFE3BA92274}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BED2D5B0-3DB5-4560-BB83-6BFE3BA92274}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -155,6 +163,8 @@ Global
 		{EEC1E9D4-6079-4318-8FE8-5FA00882B9E8} = {93B987C1-C526-46F3-8503-1B758E24981E}
 		{3DDFA318-F343-457A-8F7F-B30E06E7E362} = {7F073AF3-6E61-48FE-A2BC-031D19095257}
 		{588E6574-6DA1-4F64-A3FC-0364CA7FCE12} = {EEC1E9D4-6079-4318-8FE8-5FA00882B9E8}
+		{C9484707-BAFA-4449-BC7A-FE2B0A66FCE9} = {E4E99252-2B38-446B-BD99-5F25664192FC}
+		{BED2D5B0-3DB5-4560-BB83-6BFE3BA92274} = {C9484707-BAFA-4449-BC7A-FE2B0A66FCE9}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9572C7DE-17AC-40C7-A46E-C2E48064E3F9}

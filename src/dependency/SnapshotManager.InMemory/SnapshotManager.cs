@@ -2,15 +2,13 @@
 using SentinelCore.Domain.Abstractions.SnapshotManager;
 using SentinelCore.Domain.Entities.ObjectDetection;
 using SentinelCore.Domain.Entities.VideoStream;
-using System.Collections.Concurrent;
-using MessagePipe;
-using SentinelCore.Domain.Abstractions.EventHandler;
 using SentinelCore.Domain.Events.AnalysisEngine;
 using SentinelCore.Domain.Utils.Extensions;
+using System.Collections.Concurrent;
 
 namespace SnapshotManager.InMemory
 {
-    public class SnapshotManager : ISnapshotManager, IEventSubscriber<ObjectExpiredEvent>, IEventSubscriber<FrameExpiredEvent>
+    public class SnapshotManager : FrameAndObjectExpiredSubscriber, ISnapshotManager
     {
         // frameId -> Scene
         private readonly ConcurrentDictionary<long, Mat> _scenesOfFrame;
@@ -24,12 +22,7 @@ namespace SnapshotManager.InMemory
         private int _maxSnapshotHeight = 40;
 
         public string Name => "In-memory snapshot manager";
-
-        private ISubscriber<ObjectExpiredEvent> _oeSubscriber;
-        private IDisposable _disposableOeSubscriber;
-
-        private ISubscriber<FrameExpiredEvent> _feSubscriber;
-        private IDisposable _disposableFeSubscriber;
+        public string SnapshotDir => _snapshotsDir;
 
         public SnapshotManager(Dictionary<string, string> preferences)
         {
@@ -45,7 +38,7 @@ namespace SnapshotManager.InMemory
             var snapshotFullPath = Path.Combine(Directory.GetCurrentDirectory(), _snapshotsDir);
             snapshotFullPath.EnsureDirExistence();
         }
-
+        
         public void ProcessSnapshots(Frame frame)
         {
             AddSceneByFrameId(frame.FrameId, frame);
@@ -69,18 +62,22 @@ namespace SnapshotManager.InMemory
                     continue;
                 }
 
-                AddSnapshotOfObjectById(obj.Id, CalculateFactor(obj), frame, obj.Bbox);
+                Mat snapshot = TakeSnapshot(frame, obj.Bbox);
+                AddSnapshotOfObjectById(obj.Id, CalculateFactor(obj), snapshot);
             }
         }
 
-        private void AddSnapshotOfObjectById(string objId, float score, Frame frame, BoundingBox bboxs)
+        public Mat TakeSnapshot(Frame frame, BoundingBox bboxs)
+        {
+            return frame.Scene.SubMat(new Rect(bboxs.X, bboxs.Y, bboxs.Width, bboxs.Height)).Clone();
+        }
+
+        public void AddSnapshotOfObjectById(string objId, float score, Mat snapshot)
         {
             if (!_snapshotsByScore.ContainsKey(objId))
             {
                 _snapshotsByScore.TryAdd(objId, new SortedList<float, Mat>());
             }
-
-            Mat snapshot = TakeSnapshot(frame, bboxs);
 
             SortedList<float, Mat> snapshotsById = _snapshotsByScore[objId];
             if (!snapshotsById.ContainsKey(score))
@@ -100,6 +97,18 @@ namespace SnapshotManager.InMemory
                     snapshotsById.RemoveAt(i);
                 }
             }
+        }
+
+        public Mat GenerateBoxedScene(Mat scene, List<BoundingBox> boundingBoxes)
+        {
+            Mat boxedScene = scene.Clone();
+
+            foreach (var boundingBox in boundingBoxes)
+            {
+                boxedScene.Rectangle(boundingBox.Rectangle, Scalar.Crimson, 2);
+            }
+
+            return boxedScene;
         }
 
         private float CalculateFactor(DetectedObject obj)
@@ -138,11 +147,6 @@ namespace SnapshotManager.InMemory
         public int GetCachedSnapshotCount()
         {
             return _snapshotsByScore.Count;
-        }
-
-        public Mat TakeSnapshot(Frame frame, BoundingBox bboxs)
-        {
-            return frame.Scene.SubMat(new Rect(bboxs.X, bboxs.Y, bboxs.Width, bboxs.Height)).Clone();
         }
         
         private void ReleaseSceneByFrameId(long frameId)
@@ -194,13 +198,7 @@ namespace SnapshotManager.InMemory
             }
         }
 
-        public void SetSubscriber(ISubscriber<ObjectExpiredEvent> subscriber)
-        {
-            _oeSubscriber = subscriber;
-            _disposableOeSubscriber = _oeSubscriber.Subscribe(ProcessEvent);
-        }
-
-        public void ProcessEvent(ObjectExpiredEvent @event)
+        public override void ProcessEvent(ObjectExpiredEvent @event)
         {
             Task.Run(() =>
             {
@@ -209,13 +207,7 @@ namespace SnapshotManager.InMemory
             }).Wait();
         }
 
-        public void SetSubscriber(ISubscriber<FrameExpiredEvent> subscriber)
-        {
-            _feSubscriber = subscriber;
-            _disposableFeSubscriber = _feSubscriber.Subscribe(ProcessEvent);
-        }
-
-        public void ProcessEvent(FrameExpiredEvent @event)
+        public override void ProcessEvent(FrameExpiredEvent @event)
         {
             Task.Run(() =>
             {
@@ -230,8 +222,7 @@ namespace SnapshotManager.InMemory
                 scene.Dispose();
             }
 
-            _disposableOeSubscriber.Dispose();
-            _disposableFeSubscriber.Dispose();
+            base.Dispose();
         }
     }
 }

@@ -1,0 +1,73 @@
+{
+  "Width": 640,
+  "Height": 640,
+  "Depth": 3,
+  "Dimensions": 7,
+  "Strides": [
+    8,
+    16,
+    32
+  ],
+  "Anchors": [
+    [
+      [
+        10,
+        13
+      ],
+      [
+        16,
+        30
+      ],
+      [
+        33,
+        23
+      ]
+    ],
+    [
+      [
+        30,
+        61
+      ],
+      [
+        62,
+        45
+      ],
+      [
+        59,
+        119
+      ]
+    ],
+    [
+      [
+        116,
+        90
+      ],
+      [
+        156,
+        198
+      ],
+      [
+        373,
+        326
+      ]
+    ]
+  ],
+  "Shapes": [
+    80,
+    40,
+    20
+  ],
+  "Confidence": 0.2,
+  "MulConfidence": 0.25,
+  "Overlap": 0.45,
+  "Channels": 3,
+  "BatchSize": 1,
+  "Outputs": [
+    "output0"
+  ],
+  "Input": "images",
+  "Names": [
+    "person",
+    "net"
+  ]
+}

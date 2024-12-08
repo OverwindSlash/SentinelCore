@@ -14,7 +14,7 @@ namespace SentinelCore.Service.Tests.Pipeline
 
             using var pipeline = new AnalysisPipeline(config);
 
-            //pipeline.Run();
+            pipeline.Run();
 
             Assert.That(pipeline, Is.Not.Null);
         }

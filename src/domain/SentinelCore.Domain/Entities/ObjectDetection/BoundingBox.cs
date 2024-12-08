@@ -1,5 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
+using OpenCvSharp;
 
 namespace SentinelCore.Domain.Entities.ObjectDetection
 {
@@ -39,6 +40,8 @@ namespace SentinelCore.Domain.Entities.ObjectDetection
         public int BottomCenterX => (X + Width / 2);
         [JsonIgnore]
         public int BottomCenterY => (Y + Height);
+
+        [JsonIgnore] public Rect Rectangle => new Rect(X, Y, Width, Height);
         #endregion
 
         public int TrackingId { get; set; }

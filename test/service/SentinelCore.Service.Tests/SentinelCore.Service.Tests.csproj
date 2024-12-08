@@ -24,6 +24,7 @@
     <ProjectReference Include="..\..\..\src\dependency\RegionManager.DefinitionBased\RegionManager.DefinitionBased.csproj" />
     <ProjectReference Include="..\..\..\src\dependency\SnapshotManager.InMemory\SnapshotManager.InMemory.csproj" />
     <ProjectReference Include="..\..\..\src\dependency\Tracker.Sort\Tracker.Sort.csproj" />
+    <ProjectReference Include="..\..\..\src\handler\Handler.MultiOccurrence\Handler.MultiOccurrence.csproj" />
     <ProjectReference Include="..\..\..\src\service\SentinelCore.Service\SentinelCore.Service.csproj" />
   </ItemGroup>
 
@@ -33,6 +34,9 @@
 
   <ItemGroup>
     <None Update="default-region.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Images\Traffic_001.jpg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="test-settings.json">
