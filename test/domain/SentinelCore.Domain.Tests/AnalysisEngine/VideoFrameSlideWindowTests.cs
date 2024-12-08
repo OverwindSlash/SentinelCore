@@ -6,6 +6,7 @@ using SentinelCore.Domain.Abstractions.EventHandler;
 using SentinelCore.Domain.Entities.AnalysisEngine;
 using SentinelCore.Domain.Entities.ObjectDetection;
 using SentinelCore.Domain.Entities.VideoStream;
+using SentinelCore.Domain.Events;
 using SentinelCore.Domain.Events.AnalysisEngine;
 
 namespace SentinelCore.Domain.Tests.AnalysisEngine;
@@ -21,6 +22,9 @@ public class VideoFrameSlideWindowTests
     private readonly ISubscriber<FrameExpiredEvent> _frmExpiredSubscriber2;
     private readonly ISubscriber<ObjectExpiredEvent> _objExpiredSubscriber2;
 
+    private readonly ISubscriber<ObjectExpiredEvent> _objExpiredSubscriber3;
+    private readonly ISubscriber<EventBase> _baseEventSubscriber;
+
     public VideoFrameSlideWindowTests()
     {
         var services = new ServiceCollection();
@@ -35,6 +39,9 @@ public class VideoFrameSlideWindowTests
 
         _frmExpiredSubscriber2 = provider.GetRequiredService<ISubscriber<FrameExpiredEvent>>();
         _objExpiredSubscriber2 = provider.GetRequiredService<ISubscriber<ObjectExpiredEvent>>();
+
+        _objExpiredSubscriber3 = provider.GetRequiredService<ISubscriber<ObjectExpiredEvent>>();
+        _baseEventSubscriber = provider.GetRequiredService<ISubscriber<EventBase>>();
     }
 
     [Test]
@@ -416,8 +423,13 @@ public class VideoFrameSlideWindowTests
         var frmEventSubscriber2 = Substitute.For<IEventSubscriber<FrameExpiredEvent>>();
         var objEventSubscriber2 = Substitute.For<IEventSubscriber<ObjectExpiredEvent>>();
 
-        _frmExpiredSubscriber1.Subscribe(x => frmEventSubscriber2.ProcessEvent(x));
-        _objExpiredSubscriber1.Subscribe(x => objEventSubscriber2.ProcessEvent(x));
+        _frmExpiredSubscriber2.Subscribe(x => frmEventSubscriber2.ProcessEvent(x));
+        _objExpiredSubscriber2.Subscribe(x => objEventSubscriber2.ProcessEvent(x));
+
+        var objEventSubscriber3 = Substitute.For<IEventSubscriber<ObjectExpiredEvent>>();
+
+        _objExpiredSubscriber3.Subscribe(x => objEventSubscriber3.ProcessEvent(x));
+        //_baseEventSubscriber.Subscribe(e => Console.WriteLine("baseSubsriber:" + e.EventId));
 
         // frame 1: car1
         var frame1 = CreateFrame1();
@@ -427,7 +439,6 @@ public class VideoFrameSlideWindowTests
 
         // frame 3: person1
         var frame3 = CreateFrame3();
-
 
         // frame 4: person1
         var frame4 = CreateFrame4();
@@ -459,6 +470,7 @@ public class VideoFrameSlideWindowTests
         objEventSubscriber1.Received().ProcessEvent(Arg.Is<ObjectExpiredEvent>(e => e.Id == "car:1"));
         frmEventSubscriber2.Received().ProcessEvent(Arg.Is<FrameExpiredEvent>(e => e.FrameId == 2));
         objEventSubscriber2.Received().ProcessEvent(Arg.Is<ObjectExpiredEvent>(e => e.Id == "car:1"));
+        objEventSubscriber3.Received().ProcessEvent(Arg.Is<ObjectExpiredEvent>(e => e.Id == "car:1"));
 
         slideWindow.AddNewFrame(frame6);
         frmEventSubscriber1.Received().ProcessEvent(Arg.Is<FrameExpiredEvent>(e => e.FrameId == 3));
@@ -473,6 +485,7 @@ public class VideoFrameSlideWindowTests
         objEventSubscriber1.Received().ProcessEvent(Arg.Is<ObjectExpiredEvent>(e => e.Id == "person:1"));
         frmEventSubscriber2.Received().ProcessEvent(Arg.Is<FrameExpiredEvent>(e => e.FrameId == 5));
         objEventSubscriber2.Received().ProcessEvent(Arg.Is<ObjectExpiredEvent>(e => e.Id == "person:1"));
+        objEventSubscriber3.Received().ProcessEvent(Arg.Is<ObjectExpiredEvent>(e => e.Id == "person:1"));
 
         var car1Frames = slideWindow.GetFramesContainObjectId("car:1");
         Assert.That(car1Frames.Count, Is.EqualTo(0));
@@ -492,4 +505,25 @@ public class VideoFrameSlideWindowTests
         var car2IsUnderTracking = slideWindow.IsObjIdAlive("car:2");
         Assert.That(car2IsUnderTracking, Is.EqualTo(true));
     }
+
+    /*[Test]
+    public void TestPublishSubscrber()
+    {
+        var services = new ServiceCollection();
+        services.AddMessagePipe();
+        var provider = services.BuildServiceProvider();
+
+        var publisher = provider.GetRequiredService<IPublisher<EventBase>>();
+
+        var baseSubscriber = provider.GetRequiredService<ISubscriber<EventBase>>();
+        var frameExpiredSubscriber = provider.GetRequiredService<ISubscriber<FrameExpiredEvent>>();
+        var objectExpiredSuEvent = provider.GetRequiredService<ISubscriber<ObjectExpiredEvent>>();
+
+        baseSubscriber.Subscribe(e => Console.WriteLine("base:" + e.EventId));
+        frameExpiredSubscriber.Subscribe(e => Console.WriteLine("frame:" + e.EventId));
+        objectExpiredSuEvent.Subscribe(e => Console.WriteLine("obj:" + e.EventId));
+
+        publisher.Publish(new FrameExpiredEvent(1));
+        publisher.Publish(new ObjectExpiredEvent("person:1",0, "person", 1));
+    }*/
 }

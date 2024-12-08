@@ -1,5 +1,4 @@
-﻿using MessagePipe;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using OpenCvSharp;
 using SentinelCore.Domain.Abstractions.MediaLoader;
@@ -10,12 +9,10 @@ using SentinelCore.Domain.Abstractions.SnapshotManager;
 using SentinelCore.Domain.Entities.AnalysisDefinitions.Geometrics;
 using SentinelCore.Domain.Entities.AnalysisEngine;
 using SentinelCore.Domain.Entities.VideoStream;
-using SentinelCore.Domain.Events;
-using SentinelCore.Domain.Events.AnalysisEngine;
-using SentinelCore.Pipeline.Settings;
+using SentinelCore.Service.Pipeline.Settings;
 using System.Reflection;
 
-namespace SentinelCore.Pipeline
+namespace SentinelCore.Service.Pipeline
 {
     public class AnalysisPipeline : IDisposable
     {
@@ -33,8 +30,8 @@ namespace SentinelCore.Pipeline
         private readonly VideoFrameSlideWindow _slideWindow;
         private readonly VideoFrameBuffer _analyzedFrameBuffer;
 
-        private readonly ServiceCollection _services;
-        private readonly ServiceProvider _provider;
+        private ServiceCollection _services;
+        private ServiceProvider _provider;
 
         private IVideoLoader _videoLoader;
         private IObjectDetector _objectDetector;
@@ -49,11 +46,7 @@ namespace SentinelCore.Pipeline
             _slideWindow = new VideoFrameSlideWindow(_pipeLineSettings.FrameLifetime);
             _analyzedFrameBuffer = new VideoFrameBuffer(_pipeLineSettings.FrameLifetime);
 
-            _services = new ServiceCollection();
-
             RegisterComponents();
-
-            _provider = _services.BuildServiceProvider();
         }
 
         private void LoadAllSettings(IConfiguration config)
@@ -74,6 +67,8 @@ namespace SentinelCore.Pipeline
 
         private void RegisterComponents()
         {
+            _services = new ServiceCollection();
+
             _services.AddMessagePipe();
 
             var mediaLoader = CreateInstance<IVideoLoader>(
@@ -120,6 +115,8 @@ namespace SentinelCore.Pipeline
                     new object?[] { setting.DestinationUrl, setting.Preferences });
                 _services.AddTransient<IJsonMsgPoster>(sp => jsonMsgPoster);
             }*/
+
+            _provider = _services.BuildServiceProvider();
         }
 
         private static T CreateInstance<T>(string assemblyFile, string fullQualifiedClassName, object?[] parameters = null)
