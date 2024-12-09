@@ -19,10 +19,7 @@
             HandlerName = handlerName;
         }
 
-        public virtual object GetProperty(string key)
-        {
-            return null;
-        }
+        public abstract string GenerateJsonMessage();
 
         public string CreateLogMessage()
         {

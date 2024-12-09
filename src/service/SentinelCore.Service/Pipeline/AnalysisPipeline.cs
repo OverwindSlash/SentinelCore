@@ -2,7 +2,9 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using OpenCvSharp;
+using SentinelCore.Domain.Abstractions.AnalysisHandler;
 using SentinelCore.Domain.Abstractions.MediaLoader;
+using SentinelCore.Domain.Abstractions.MessagePoster;
 using SentinelCore.Domain.Abstractions.ObjectDetector;
 using SentinelCore.Domain.Abstractions.ObjectTracker;
 using SentinelCore.Domain.Abstractions.RegionManager;
@@ -13,8 +15,6 @@ using SentinelCore.Domain.Entities.VideoStream;
 using SentinelCore.Domain.Events.AnalysisEngine;
 using SentinelCore.Service.Pipeline.Settings;
 using System.Reflection;
-using SentinelCore.Domain.Abstractions.AnalysisHandler;
-using SentinelCore.Domain.Events;
 
 namespace SentinelCore.Service.Pipeline
 {
@@ -26,8 +26,6 @@ namespace SentinelCore.Service.Pipeline
         private TrackerSettings _trackerSettings;
         private RegionManagerSettings _regionManagerSettings;
         private SnapshotSettings _snapshotSettings;
-        private EventPublisherSettings _eventPublisherSettings;
-        private EventSubscriberSettings _eventSubscriberSettings;
         private List<AnalysisHandlerSettings> _analysisHandlerSettings;
         private List<JsonMsgPosterSettings> _jsonMsgPosterSettings;
 
@@ -43,9 +41,11 @@ namespace SentinelCore.Service.Pipeline
         private IRegionManager _regionManager;
         private ISnapshotManager _snapshotManager;
         private List<IAnalysisHandler> _analysisHandlers;
+        private List<IJsonMessagePoster> _jsonMsgPosters;
 
         public string DeviceName => _pipeLineSettings.DeviceName;
         public ISnapshotManager SnapshotManager => _snapshotManager;
+        public List<IJsonMessagePoster> JsonMessagePosters => _jsonMsgPosters;
 
         public AnalysisPipeline(IConfiguration config)
         {
@@ -69,11 +69,9 @@ namespace SentinelCore.Service.Pipeline
             _trackerSettings = config.GetSection("Tracker").Get<TrackerSettings>();
             _regionManagerSettings = config.GetSection("RegionManager").Get<RegionManagerSettings>();
             _snapshotSettings = config.GetSection("Snapshot").Get<SnapshotSettings>();
-            _eventPublisherSettings = config.GetSection("EventPublisher").Get<EventPublisherSettings>();
-            _eventSubscriberSettings = config.GetSection("EventSubscriber").Get<EventSubscriberSettings>();
 
             _analysisHandlerSettings = config.GetSection("AnalysisHandlers").Get<List<AnalysisHandlerSettings>>();
-            _jsonMsgPosterSettings = config.GetSection("JsonMessagePoster").Get<List<JsonMsgPosterSettings>>();
+            _jsonMsgPosterSettings = config.GetSection("MessagePoster").Get<List<JsonMsgPosterSettings>>();
         }
 
         private void RegisterComponents()
@@ -104,15 +102,6 @@ namespace SentinelCore.Service.Pipeline
                 _snapshotSettings.AssemblyFile, _snapshotSettings.FullQualifiedClassName, new object?[] { _snapshotSettings.Preferences });
             _services.AddTransient<ISnapshotManager>(sp => snapshot);
 
-            /*var publisher = CreateInstance<IDomainEventPublisher>(
-                _eventPublisherSettings.AssemblyFile, _eventPublisherSettings.FullQualifiedClassName);
-            _services.AddTransient<IDomainEventPublisher>(sp => publisher);
-
-            var subscriber = CreateInstance<IDomainEventSubscriber>(
-                _eventSubscriberSettings.AssemblyFile, _eventSubscriberSettings.FullQualifiedClassName,
-                new object?[] { _eventSubscriberSettings.Preferences });
-            _services.AddTransient<IDomainEventSubscriber>(sp => subscriber);*/
-
             foreach (var setting in _analysisHandlerSettings)
             {
                 var handler = CreateInstance<IAnalysisHandler>(setting.AssemblyFile, setting.FullQualifiedClassName,
@@ -120,12 +109,12 @@ namespace SentinelCore.Service.Pipeline
                 _services.AddTransient<IAnalysisHandler>(sp => handler);
             }
 
-            /*foreach (var setting in _jsonMsgPosterSettings)
+            foreach (var setting in _jsonMsgPosterSettings)
             {
-                var jsonMsgPoster = CreateInstance<IJsonMsgPoster>(setting.AssemblyFile, setting.FullQualifiedClassName,
+                var jsonMsgPoster = CreateInstance<IJsonMessagePoster>(setting.AssemblyFile, setting.FullQualifiedClassName,
                     new object?[] { setting.DestinationUrl, setting.Preferences });
-                _services.AddTransient<IJsonMsgPoster>(sp => jsonMsgPoster);
-            }*/
+                _services.AddTransient<IJsonMessagePoster>(sp => jsonMsgPoster);
+            }
 
             _provider = _services.BuildServiceProvider();
         }
@@ -212,20 +201,13 @@ namespace SentinelCore.Service.Pipeline
 
             _snapshotManager = _provider.GetService<ISnapshotManager>();
 
-            /*_eventPublisher = _provider.GetService<IDomainEventPublisher>();
-            _eventPublisher.SetPublisher(_provider.GetRequiredService<IPublisher<DomainEvent>>());
-
-            _jsonMsgGenerators = _provider.GetServices<IJsonMsgPoster>().ToList();
-
-            _eventSubscriber = _provider.GetService<IDomainEventSubscriber>();
-            _eventSubscriber.SetSubscriber(_provider.GetRequiredService<ISubscriber<DomainEvent>>());
-            _eventSubscriber.SetJsonPosters(_jsonMsgGenerators);*/
+            _jsonMsgPosters = _provider.GetServices<IJsonMessagePoster>().ToList();
 
             _analysisHandlers = _provider.GetServices<IAnalysisHandler>().ToList();
 
-            _analysisHandlers.ForEach(handler => handler.SetSubscriber(_provider.GetRequiredService<ISubscriber<FrameExpiredEvent>>()));
-            _analysisHandlers.ForEach(handler => handler.SetSubscriber(_provider.GetRequiredService<ISubscriber<ObjectExpiredEvent>>()));
+            _analysisHandlers.ForEach(handler => handler.SetServiceProvider(_provider));
 
+            // 以下开始绑定事件
             _regionManager.SetSubscriber(_provider.GetRequiredService<ISubscriber<ObjectExpiredEvent>>());
 
             // 最后再由_snapshot 组件处理对象和帧过期事件, 以防止分析过程中截图被清理

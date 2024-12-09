@@ -75,7 +75,7 @@
         "EventMessage": "侦测到疑似撒网行为",
         "CloseThreshold": 0.5,
         "PrimaryType": "net",
-        "AuxiliaryType": ""
+        "AuxiliaryType": "person"
       }
     },
     //{
@@ -88,10 +88,10 @@
     //  }
     //}
   ],
-  "JsonMessagePoster": [
+  "MessagePoster": [
     {
-      "AssemblyFile": "LesCastingNetMsg.dll",
-      "FullQualifiedClassName": "LesCastingNetMsg.LesCastingNetMsgPoster",
+      "AssemblyFile": "MessagePoster.RestfulJson.dll",
+      "FullQualifiedClassName": "MessagePoster.RestfulJson.MessagePoster",
       "Parameters": [],
       "DestinationUrl": "http://127.0.0.1:5000/illegalfishing_warn",
       "Preferences": {

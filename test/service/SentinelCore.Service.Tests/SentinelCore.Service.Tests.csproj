@@ -21,6 +21,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\dependency\Detector.YoloV5Onnx\Detector.YoloV5Onnx.csproj" />
     <ProjectReference Include="..\..\..\src\dependency\MediaLoader.OpenCV\MediaLoader.OpenCV.csproj" />
+    <ProjectReference Include="..\..\..\src\dependency\MessagePoster.RestfulJson\MessagePoster.RestfulJson.csproj" />
     <ProjectReference Include="..\..\..\src\dependency\RegionManager.DefinitionBased\RegionManager.DefinitionBased.csproj" />
     <ProjectReference Include="..\..\..\src\dependency\SnapshotManager.InMemory\SnapshotManager.InMemory.csproj" />
     <ProjectReference Include="..\..\..\src\dependency\Tracker.Sort\Tracker.Sort.csproj" />

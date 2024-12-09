@@ -1,4 +1,6 @@
-﻿using OpenCvSharp;
+﻿using System.Text.Json;
+using System.Text.Json.Serialization;
+using OpenCvSharp;
 using SentinelCore.Domain.Events;
 
 namespace Handler.MultiOccurrence.Events
@@ -8,8 +10,12 @@ namespace Handler.MultiOccurrence.Events
         public string DeviceName { get; }
         public List<string> ObjTypes { get; private set; } = new List<string>();
         public string SnapshotId { get; private set; }
+
+        [JsonIgnore]
         public Mat Snapshot { get; private set; }
         public string EventImagePath { get; set; }
+
+        [JsonIgnore]
         public Mat Scene { get; private set; }
         public string EventScenePath { get; set; }
 
@@ -33,9 +39,14 @@ namespace Handler.MultiOccurrence.Events
             EventScenePath = eventScenePath;
         }
 
+        public override string GenerateJsonMessage()
+        {
+            return JsonSerializer.Serialize<MultiOccurenceEvent>(this);
+        }
+
         protected override string GenerateLogContent()
         {
-            return $"{Message} Event image saved：{EventScenePath}";
+            return $"Multi-Occurrence Event: ObjTypes: {ObjTypes}.";
         }
     }
 }

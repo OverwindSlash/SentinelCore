@@ -60,7 +60,7 @@ namespace SentinelCore.Domain.Entities.ObjectDetection
 
         public BoundingBox CombineBoundingBox(BoundingBox other)
         {
-            int minX = Math.Min(TopCenterX, other.TopCenterX);
+            int minX = Math.Min(TopLeftX, other.TopLeftX);
             int minY = Math.Min(TopLeftY, other.TopLeftY);
 
             int maxX = Math.Max(BottomRightX, other.BottomRightX);
