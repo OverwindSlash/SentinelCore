@@ -101,7 +101,8 @@ public class ConcurrentBoundedQueue<T> : IEnumerable<T>, IConcurrentBoundedQueue
 
     public void Clear()
     {
-        for (int i = 0; i < _queue.Count; i++)
+        var queueCount = _queue.Count;
+        for (int i = 0; i < queueCount; i++)
         {
             var item = Dequeue();
             CleanupItem(item);
