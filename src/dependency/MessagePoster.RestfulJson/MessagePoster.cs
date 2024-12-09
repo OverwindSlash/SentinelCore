@@ -25,13 +25,13 @@ namespace MessagePoster.RestfulJson
 
                 if (response.IsSuccessStatusCode)
                 {
-                    Console.WriteLine("Send message successful！");
+                    //Console.WriteLine("Send message successful！");
                     string result = await response.Content.ReadAsStringAsync();
-                    Console.WriteLine("response：" + result);
+                    //Console.WriteLine("response：" + result);
                 }
                 else
                 {
-                    Console.WriteLine("Send message failed！" + response.StatusCode);
+                    //Console.WriteLine("Send message failed！" + response.StatusCode);
                 }
             });
         }

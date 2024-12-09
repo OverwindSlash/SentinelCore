@@ -1,0 +1,101 @@
+{
+  "Pipeline": {
+    "DeviceName": "CameraId001",
+    //"Uri": "rtsp://admin:CS%40202304@192.168.1.151:554/Streaming/Channels/101?transportmode=unicast&profile=Profile_1",
+    "Uri": "D:\\Video\\CastingNet\\01.mp4",
+    "FrameLifetime": 200,
+    "EnableDebugDisplay": true
+  },
+  "MediaLoader": {
+    //"AssemblyFile": "MediaLoader.FFMpeg.dll",
+    //"FullQualifiedClassName": "MediaLoader.FFMpeg.VideoLoader",
+    "AssemblyFile": "MediaLoader.OpenCV.dll",
+    "FullQualifiedClassName": "MediaLoader.OpenCV.VideoLoader",
+    "Parameters": [
+      300
+    ],
+    "VideoStride": 2
+  },
+  "Detector": {
+    "AssemblyFile": "Detector.YoloV5Onnx.dll",
+    "FullQualifiedClassName": "Detector.YoloV5Onnx.YoloOnnxDetector",
+    "Parameters": [],
+    "ModelPath": "Models\\castingnet.onnx",
+    "ModelConfig": "Models\\castingnet.json",
+    "UseCuda": true,
+    "GpuId": 0,
+    "Thresh": 0.3
+  },
+  "Tracker": {
+    "AssemblyFile": "Tracker.Sort.dll",
+    "FullQualifiedClassName": "Tracker.Sort.SortTracker",
+    "Parameters": [
+      0.1,
+      75
+    ]
+  },
+  "RegionManager": {
+    "AssemblyFile": "RegionManager.DefinitionBased.dll",
+    "FullQualifiedClassName": "RegionManager.DefinitionBased.RegionManager",
+    "Parameters": [
+      "default-region.json"
+    ]
+  },
+  "Snapshot": {
+    "AssemblyFile": "SnapshotManager.InMemory.dll",
+    "FullQualifiedClassName": "SnapshotManager.InMemory.SnapshotManager",
+    "Parameters": [],
+    "Preferences": {
+      "SnapshotsDir": "Snapshots",
+      "SaveBestSnapshot": true,
+      "MaxSnapshots": 10,
+      "MinSnapshotWidth": 200,
+      "MinSnapshotHeight": 50
+    }
+  },
+  "EventPublisher": {
+    "AssemblyFile": "EventPublisher.MessagePipe.dll",
+    "FullQualifiedClassName": "EventPublisher.MessagePipe.DomainEventPublisher",
+    "Parameters": []
+  },
+  "EventSubscriber": {
+    "AssemblyFile": "EventSubscriber.MessagePipe.dll",
+    "FullQualifiedClassName": "EventSubscriber.MessagePipe.DomainEventSubscriber",
+    "Parameters": [],
+    "Preferences": {
+    }
+  },
+  "AnalysisHandlers": [
+    {
+      "AssemblyFile": "Handler.MultiOccurrence.dll",
+      "FullQualifiedClassName": "Handler.MultiOccurrence.Algorithms.MultiOccurrenceAlg",
+      "Parameters": [],
+      "Preferences": {
+        "EventName": "撒网事件",
+        "EventMessage": "侦测到疑似撒网行为",
+        "CloseThreshold": 0.5,
+        "PrimaryType": "net",
+        "AuxiliaryType": "person"
+      }
+    },
+    //{
+    //  "AssemblyFile": "Handler.Ocr.dll",
+    //  "FullQualifiedClassName": "Handler.Ocr.Algorithms.PaddleSharpOcrAlg",
+    //  "Parameters": [],
+    //  "Preferences": {
+    //    "TypeToOCR": "sign",
+    //    "ScoreThresh": "0.8"
+    //  }
+    //}
+  ],
+  "MessagePoster": [
+    {
+      "AssemblyFile": "MessagePoster.RestfulJson.dll",
+      "FullQualifiedClassName": "MessagePoster.RestfulJson.MessagePoster",
+      "Parameters": [],
+      "DestinationUrl": "http://127.0.0.1:5000/illegalfishing_warn",
+      "Preferences": {
+      }
+    }
+  ]
+}

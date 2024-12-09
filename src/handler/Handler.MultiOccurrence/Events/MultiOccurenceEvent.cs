@@ -46,7 +46,7 @@ namespace Handler.MultiOccurrence.Events
 
         protected override string GenerateLogContent()
         {
-            return $"Multi-Occurrence Event: ObjTypes: {ObjTypes}.";
+            return $"Device: {DeviceName}, {EventName} occurred: Detected object: {String.Join(",", ObjTypes)}.";
         }
     }
 }

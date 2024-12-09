@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <PublishAot>false</PublishAot>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\application\SentinelCore.AppService\SentinelCore.AppService.csproj" />
+    <ProjectReference Include="..\..\dependency\Detector.YoloV5Onnx\Detector.YoloV5Onnx.csproj" />
+    <ProjectReference Include="..\..\dependency\MediaLoader.OpenCV\MediaLoader.OpenCV.csproj" />
+    <ProjectReference Include="..\..\dependency\MessagePoster.RestfulJson\MessagePoster.RestfulJson.csproj" />
+    <ProjectReference Include="..\..\dependency\RegionManager.DefinitionBased\RegionManager.DefinitionBased.csproj" />
+    <ProjectReference Include="..\..\dependency\SnapshotManager.InMemory\SnapshotManager.InMemory.csproj" />
+    <ProjectReference Include="..\..\dependency\Tracker.Sort\Tracker.Sort.csproj" />
+    <ProjectReference Include="..\..\handler\Handler.MultiOccurrence\Handler.MultiOccurrence.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="console-settings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="default-region.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Images\Traffic_001.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

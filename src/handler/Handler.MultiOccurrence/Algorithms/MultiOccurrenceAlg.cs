@@ -5,7 +5,6 @@ using MessagePipe;
 using Microsoft.Extensions.DependencyInjection;
 using OpenCvSharp;
 using SentinelCore.Domain.Abstractions.AnalysisHandler;
-using SentinelCore.Domain.Abstractions.MessagePoster;
 using SentinelCore.Domain.Abstractions.SnapshotManager;
 using SentinelCore.Domain.Entities.AnalysisEngine;
 using SentinelCore.Domain.Entities.ObjectDetection;
@@ -84,6 +83,8 @@ namespace Handler.MultiOccurrence.Algorithms
 
                     _eventPublisher.Publish(multiOccurenceEvent);
 
+                    Console.WriteLine(multiOccurenceEvent.CreateLogMessage());
+
                     foreach (var jsonMessagePoster in jsonMessagePosters)
                     {
                         var jsonMessage = multiOccurenceEvent.GenerateLesCastingNetJsonMsg();
@@ -117,7 +118,7 @@ namespace Handler.MultiOccurrence.Algorithms
                                 eventName: _eventName,
                                 eventMessage: _eventMessage,
                                 handlerName: _eventName,
-                                objTypes: new List<string>() { primaryObject.Label },
+                                objTypes: new List<string>() { primaryObject.Label, auxiliaryObj.Label },
                                 snapshotId: eventId,
                                 snapshot: null,
                                 eventImagePath: string.Empty,
@@ -125,6 +126,8 @@ namespace Handler.MultiOccurrence.Algorithms
                                 eventScenePath: sceneFilepath);
 
                             _eventPublisher.Publish(multiOccurenceEvent);
+
+                            Console.WriteLine(multiOccurenceEvent.CreateLogMessage());
 
                             foreach (var jsonMessagePoster in jsonMessagePosters)
                             {
