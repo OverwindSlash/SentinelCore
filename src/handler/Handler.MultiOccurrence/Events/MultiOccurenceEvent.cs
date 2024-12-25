@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
+using Handler.MultiOccurrence.ThirdParty;
 using OpenCvSharp;
 using SentinelCore.Domain.Events;
 
@@ -41,7 +42,7 @@ namespace Handler.MultiOccurrence.Events
 
         public override string GenerateJsonMessage()
         {
-            return JsonSerializer.Serialize<MultiOccurenceEvent>(this);
+            return this.GenerateLesCastingNetJsonMsg();
         }
 
         protected override string GenerateLogContent()

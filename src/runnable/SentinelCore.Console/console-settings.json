@@ -20,11 +20,11 @@
     "AssemblyFile": "Detector.YoloV5Onnx.dll",
     "FullQualifiedClassName": "Detector.YoloV5Onnx.YoloOnnxDetector",
     "Parameters": [],
-    "ModelPath": "Models\\castingnet.onnx",
+    "ModelPath": "Models\\best.onnx",
     "ModelConfig": "Models\\castingnet.json",
     "UseCuda": true,
     "GpuId": 0,
-    "Thresh": 0.3
+    "Thresh": 0.5
   },
   "Tracker": {
     "AssemblyFile": "Tracker.Sort.dll",

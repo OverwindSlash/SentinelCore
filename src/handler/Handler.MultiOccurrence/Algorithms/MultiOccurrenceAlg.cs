@@ -5,6 +5,7 @@ using MessagePipe;
 using Microsoft.Extensions.DependencyInjection;
 using OpenCvSharp;
 using SentinelCore.Domain.Abstractions.AnalysisHandler;
+using SentinelCore.Domain.Abstractions.MessagePoster;
 using SentinelCore.Domain.Abstractions.SnapshotManager;
 using SentinelCore.Domain.Entities.AnalysisEngine;
 using SentinelCore.Domain.Entities.ObjectDetection;
@@ -39,7 +40,7 @@ namespace Handler.MultiOccurrence.Algorithms
             _closeThreshold = double.Parse(preferences["CloseThreshold"]);
             _primaryType = preferences["PrimaryType"];
             _auxiliaryType = preferences["AuxiliaryType"].Split(',').ToList();
-            _onlyCheckPrimary = (_auxiliaryType.Count == 1 && _auxiliaryType[0] == "");
+            _onlyCheckPrimary = _auxiliaryType is [""];
         }
 
         public void SetServiceProvider(IServiceProvider serviceProvider)
@@ -60,36 +61,19 @@ namespace Handler.MultiOccurrence.Algorithms
                 {
                     continue;
                 }
-
+                
+                string eventId = $"mo_{primaryObject.Id}";
                 if (_onlyCheckPrimary)
                 {
-                    string eventId = $"mo_{primaryObject.Id}";
-                    BoundingBox bbox = primaryObject.Bbox;
-                    float score = bbox.Width;
+                    var bbox = GenerateEventBbox(primaryObject, null, out var score);
 
                     var boxedScene = SaveSnapshot(frame, snapshotManager, bbox, eventId, score, out var sceneFilepath);
 
-                    var multiOccurenceEvent = new MultiOccurenceEvent(
-                        deviceName: _pipeline.DeviceName,
-                        eventName: _eventName,
-                        eventMessage: _eventMessage,
-                        handlerName: _eventName,
-                        objTypes: new List<string>() { primaryObject.Label },
-                        snapshotId: eventId,
-                        snapshot: null,
-                        eventImagePath: string.Empty,
-                        scene: boxedScene,
-                        eventScenePath: sceneFilepath);
-
-                    _eventPublisher.Publish(multiOccurenceEvent);
+                    var multiOccurenceEvent = PublishMultiOccurenceEvent(primaryObject, null, eventId, boxedScene, sceneFilepath);
 
                     Console.WriteLine(multiOccurenceEvent.CreateLogMessage());
 
-                    foreach (var jsonMessagePoster in jsonMessagePosters)
-                    {
-                        var jsonMessage = multiOccurenceEvent.GenerateLesCastingNetJsonMsg();
-                        jsonMessagePoster.PostRestfulJsonMessage(jsonMessage);
-                    }
+                    PostRestfulJsonMessage(jsonMessagePosters, multiOccurenceEvent);
                 }
                 else
                 {
@@ -107,39 +91,33 @@ namespace Handler.MultiOccurrence.Algorithms
 
                         if (primaryObject.Bbox.CloseTo(auxiliaryObj.Bbox, _closeThreshold))
                         {
-                            string eventId = $"mo_{primaryObject.Id}";
-                            BoundingBox bbox = primaryObject.Bbox.CombineBoundingBox(auxiliaryObj.Bbox);
-                            float score = bbox.Width;
+                            var bbox = GenerateEventBbox(primaryObject, auxiliaryObj, out var score);
 
                             var boxedScene = SaveSnapshot(frame, snapshotManager, bbox, eventId, score, out var sceneFilepath);
 
-                            var multiOccurenceEvent = new MultiOccurenceEvent(
-                                deviceName: _pipeline.DeviceName,
-                                eventName: _eventName,
-                                eventMessage: _eventMessage,
-                                handlerName: _eventName,
-                                objTypes: new List<string>() { primaryObject.Label, auxiliaryObj.Label },
-                                snapshotId: eventId,
-                                snapshot: null,
-                                eventImagePath: string.Empty,
-                                scene: boxedScene,
-                                eventScenePath: sceneFilepath);
-
-                            _eventPublisher.Publish(multiOccurenceEvent);
+                            var multiOccurenceEvent = PublishMultiOccurenceEvent(primaryObject, auxiliaryObj, eventId, boxedScene, sceneFilepath);
 
                             Console.WriteLine(multiOccurenceEvent.CreateLogMessage());
 
-                            foreach (var jsonMessagePoster in jsonMessagePosters)
-                            {
-                                var jsonMessage = multiOccurenceEvent.GenerateLesCastingNetJsonMsg();
-                                jsonMessagePoster.PostRestfulJsonMessage(jsonMessage);
-                            }
+                            PostRestfulJsonMessage(jsonMessagePosters, multiOccurenceEvent);
                         }
                     }
                 }
             }
 
             return new AnalysisResult(true);
+        }
+
+        private static BoundingBox GenerateEventBbox(DetectedObject primaryObject, DetectedObject auxiliaryObj, out float score)
+        {
+            BoundingBox bbox = primaryObject.Bbox;
+            if (auxiliaryObj != null)
+            {
+                bbox = primaryObject.Bbox.CombineBoundingBox(auxiliaryObj.Bbox);
+            }
+            
+            score = bbox.Width;
+            return bbox;
         }
 
         private static Mat SaveSnapshot(Frame frame, ISnapshotManager snapshotManager, BoundingBox bbox, string eventId,
@@ -155,6 +133,33 @@ namespace Handler.MultiOccurrence.Algorithms
             return boxedScene;
         }
 
+        private MultiOccurenceEvent PublishMultiOccurenceEvent(DetectedObject primaryObject, DetectedObject auxiliaryObj, string eventId, Mat boxedScene, string sceneFilepath)
+        {
+            var multiOccurenceEvent = new MultiOccurenceEvent(
+                deviceName: _pipeline.DeviceName,
+                eventName: _eventName,
+                eventMessage: _eventMessage,
+                handlerName: _eventName,
+                objTypes: new List<string>() { primaryObject.Label, auxiliaryObj.Label },
+                snapshotId: eventId,
+                snapshot: null,
+                eventImagePath: string.Empty,
+                scene: boxedScene,
+                eventScenePath: sceneFilepath);
+
+            _eventPublisher.Publish(multiOccurenceEvent);
+            return multiOccurenceEvent;
+        }
+
+        private static void PostRestfulJsonMessage(List<IJsonMessagePoster> jsonMessagePosters, MultiOccurenceEvent multiOccurenceEvent)
+        {
+            foreach (var jsonMessagePoster in jsonMessagePosters)
+            {
+                var jsonMessage = multiOccurenceEvent.GenerateJsonMessage();
+                jsonMessagePoster.PostRestfulJsonMessage(jsonMessage);
+            }
+        }
+        
         public void Dispose()
         {
         }
