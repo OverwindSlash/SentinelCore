@@ -1,8 +1,7 @@
-﻿using System.Text.Json;
-using System.Text.Json.Serialization;
-using Handler.MultiOccurrence.ThirdParty;
+﻿using Handler.MultiOccurrence.ThirdParty;
 using OpenCvSharp;
 using SentinelCore.Domain.Events;
+using System.Text.Json.Serialization;
 
 namespace Handler.MultiOccurrence.Events
 {

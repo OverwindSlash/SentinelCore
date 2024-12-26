@@ -19,6 +19,7 @@
     <ProjectReference Include="..\..\dependency\SnapshotManager.InMemory\SnapshotManager.InMemory.csproj" />
     <ProjectReference Include="..\..\dependency\Tracker.Sort\Tracker.Sort.csproj" />
     <ProjectReference Include="..\..\handler\Handler.MultiOccurrence\Handler.MultiOccurrence.csproj" />
+    <ProjectReference Include="..\..\handler\Handler.Ocr\Handler.Ocr.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -29,6 +30,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Images\Traffic_001.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="osd-exclusive-region.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

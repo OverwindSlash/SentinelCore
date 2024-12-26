@@ -2,7 +2,7 @@
   "Pipeline": {
     "DeviceName": "CameraId001",
     //"Uri": "rtsp://admin:CS%40202304@192.168.1.151:554/Streaming/Channels/101?transportmode=unicast&profile=Profile_1",
-    "Uri": "D:\\Video\\CastingNet\\01.mp4",
+    "Uri": "D:\\Video\\Ship\\02.mp4",
     "FrameLifetime": 200,
     "EnableDebugDisplay": true
   },
@@ -20,8 +20,8 @@
     "AssemblyFile": "Detector.YoloV5Onnx.dll",
     "FullQualifiedClassName": "Detector.YoloV5Onnx.YoloOnnxDetector",
     "Parameters": [],
-    "ModelPath": "Models\\castingnet.onnx",
-    "ModelConfig": "Models\\castingnet.json",
+    "ModelPath": "Models\\boatplate.onnx",
+    "ModelConfig": "Models\\boatplate.json",
     "UseCuda": true,
     "GpuId": 0,
     "Thresh": 0.5
@@ -38,7 +38,8 @@
     "AssemblyFile": "RegionManager.DefinitionBased.dll",
     "FullQualifiedClassName": "RegionManager.DefinitionBased.RegionManager",
     "Parameters": [
-      "default-region.json"
+      //"default-region.json",
+      "osd-exclusive-region.json"
     ]
   },
   "Snapshot": {
