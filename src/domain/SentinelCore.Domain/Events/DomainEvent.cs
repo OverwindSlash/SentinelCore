@@ -2,6 +2,8 @@
 {
     public abstract class DomainEvent : EventBase
     {
+        public string DeviceName { get; set; }
+
         public string EventName { get; }
 
         public string Message { get; }
@@ -9,14 +11,20 @@
         public string HandlerName { get; }
 
         protected DomainEvent()
-            : this(nameof(DomainEvent), "Unknown", "Unknown")
+            : this("UnknownDevice", nameof(DomainEvent), "Unknown", "Unknown")
         { }
 
-        protected DomainEvent(string eventName, string eventMessage, string handlerName)
+        protected DomainEvent(string deviceName, string eventName, string eventMessage, string handlerName)
         {
+            DeviceName = deviceName;
             EventName = eventName;
             Message = eventMessage;
             HandlerName = handlerName;
+        }
+
+        public virtual string GetEventKey()
+        {
+            return $"{DeviceName}_{EventName}";
         }
 
         public abstract string GenerateJsonMessage();

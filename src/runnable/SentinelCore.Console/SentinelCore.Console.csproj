@@ -12,6 +12,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\application\SentinelCore.AppService\SentinelCore.AppService.csproj" />
     <ProjectReference Include="..\..\dependency\Detector.YoloV5Onnx\Detector.YoloV5Onnx.csproj" />
+    <ProjectReference Include="..\..\dependency\MediaLoader.FFMpeg\MediaLoader.FFMpeg.csproj" />
     <ProjectReference Include="..\..\dependency\MediaLoader.OpenCV\MediaLoader.OpenCV.csproj" />
     <ProjectReference Include="..\..\dependency\MessagePoster.RestfulJson\MessagePoster.RestfulJson.csproj" />
     <ProjectReference Include="..\..\dependency\RegionManager.DefinitionBased\RegionManager.DefinitionBased.csproj" />

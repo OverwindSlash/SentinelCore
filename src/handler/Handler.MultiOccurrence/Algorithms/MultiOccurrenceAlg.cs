@@ -1,6 +1,5 @@
 ﻿using Handler.MultiOccurrence.Actions;
 using Handler.MultiOccurrence.Events;
-using Handler.MultiOccurrence.ThirdParty;
 using MessagePipe;
 using Microsoft.Extensions.DependencyInjection;
 using OpenCvSharp;
@@ -10,6 +9,7 @@ using SentinelCore.Domain.Abstractions.SnapshotManager;
 using SentinelCore.Domain.Entities.AnalysisEngine;
 using SentinelCore.Domain.Entities.ObjectDetection;
 using SentinelCore.Domain.Entities.VideoStream;
+using SentinelCore.Domain.Events;
 using SentinelCore.Service.Pipeline;
 
 namespace Handler.MultiOccurrence.Algorithms
@@ -28,8 +28,11 @@ namespace Handler.MultiOccurrence.Algorithms
         private readonly string _primaryType;
         private readonly List<string> _auxiliaryType;
         private readonly bool _onlyCheckPrimary;
+        private readonly int _suppressionSecs;
+        private readonly EventFrequencyFilter<MultiOccurenceEvent> _eventFilter;
 
         private IServiceProvider _serviceProvider;
+        
 
         public MultiOccurrenceAlg(AnalysisPipeline pipeline, Dictionary<string, string> preferences)
         {
@@ -41,6 +44,8 @@ namespace Handler.MultiOccurrence.Algorithms
             _primaryType = preferences["PrimaryType"];
             _auxiliaryType = preferences["AuxiliaryType"].Split(',').ToList();
             _onlyCheckPrimary = _auxiliaryType is [""];
+            _suppressionSecs = int.Parse(preferences["SuppressionSeconds"]);
+            _eventFilter = new EventFrequencyFilter<MultiOccurenceEvent>(_suppressionSecs);
         }
 
         public void SetServiceProvider(IServiceProvider serviceProvider)
@@ -71,6 +76,11 @@ namespace Handler.MultiOccurrence.Algorithms
 
                     var multiOccurenceEvent = PublishMultiOccurenceEvent(primaryObject, null, eventId, boxedScene, sceneFilepath);
 
+                    if (!_eventFilter.IsEventPassFilter(multiOccurenceEvent))
+                    {
+                        continue;
+                    }
+
                     Console.WriteLine(multiOccurenceEvent.CreateLogMessage());
 
                     PostRestfulJsonMessage(jsonMessagePosters, multiOccurenceEvent);
@@ -96,6 +106,11 @@ namespace Handler.MultiOccurrence.Algorithms
                             var boxedScene = SaveSnapshot(frame, snapshotManager, bbox, eventId, score, out var sceneFilepath);
 
                             var multiOccurenceEvent = PublishMultiOccurenceEvent(primaryObject, auxiliaryObj, eventId, boxedScene, sceneFilepath);
+
+                            if (!_eventFilter.IsEventPassFilter(multiOccurenceEvent))
+                            {
+                                continue;
+                            }
 
                             Console.WriteLine(multiOccurenceEvent.CreateLogMessage());
 

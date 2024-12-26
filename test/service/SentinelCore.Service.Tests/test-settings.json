@@ -75,7 +75,8 @@
         "EventMessage": "侦测到疑似撒网行为",
         "CloseThreshold": 0.5,
         "PrimaryType": "net",
-        "AuxiliaryType": "person"
+        "AuxiliaryType": "person",
+        "SuppressionSeconds": 3
       }
     },
     //{

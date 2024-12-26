@@ -20,7 +20,7 @@
     "AssemblyFile": "Detector.YoloV5Onnx.dll",
     "FullQualifiedClassName": "Detector.YoloV5Onnx.YoloOnnxDetector",
     "Parameters": [],
-    "ModelPath": "Models\\best.onnx",
+    "ModelPath": "Models\\castingnet.onnx",
     "ModelConfig": "Models\\castingnet.json",
     "UseCuda": true,
     "GpuId": 0,
@@ -75,7 +75,8 @@
         "EventMessage": "侦测到疑似撒网行为",
         "CloseThreshold": 0.5,
         "PrimaryType": "net",
-        "AuxiliaryType": "person"
+        "AuxiliaryType": "person",
+        "SuppressionSeconds": 2
       }
     },
     //{

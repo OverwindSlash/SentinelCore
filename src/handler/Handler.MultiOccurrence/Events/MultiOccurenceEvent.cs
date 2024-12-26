@@ -8,7 +8,6 @@ namespace Handler.MultiOccurrence.Events
 {
     public class MultiOccurenceEvent : DomainEvent
     {
-        public string DeviceName { get; }
         public List<string> ObjTypes { get; private set; } = new List<string>();
         public string SnapshotId { get; private set; }
 
@@ -29,7 +28,7 @@ namespace Handler.MultiOccurrence.Events
 
         public MultiOccurenceEvent(string eventName, string eventMessage, string handlerName,
             string deviceName, List<string> objTypes, string snapshotId, Mat snapshot, string eventImagePath, Mat scene, string eventScenePath)
-            : base(eventName, eventMessage, handlerName)
+            : base(deviceName, eventName, eventMessage, handlerName)
         {
             DeviceName = deviceName;
             ObjTypes = objTypes;
