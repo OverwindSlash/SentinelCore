@@ -105,7 +105,7 @@ namespace Handler.Ocr.Algorithms
             {
                 if (region.Score > _scoreThresh)
                 {
-                    Console.WriteLine($"Text: {region.Text}, Score: {region.Score}");
+                    Console.WriteLine($"ObjId:{@event.Id} Text: {region.Text}, Score: {region.Score}");
                 }
             }
         }
