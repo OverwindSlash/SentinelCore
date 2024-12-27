@@ -93,7 +93,7 @@ namespace SentinelCore.Domain.Entities.ObjectDetection
 
         public void Dispose()
         {
-            Snapshot?.Dispose();
+            //Snapshot?.Dispose();
         }
     }
 }

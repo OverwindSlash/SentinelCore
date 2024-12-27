@@ -16,7 +16,6 @@ namespace Handler.Ocr.Algorithms
     public class PaddleSharpOcrAlg : ObjectExpiredSubscriber, IAnalysisHandler
     {
         private readonly AnalysisPipeline _pipeline;
-        private readonly ISnapshotManager _snapshotManager;
 
         private IPublisher<OcrResultEvent> _eventPublisher;
 
@@ -31,7 +30,6 @@ namespace Handler.Ocr.Algorithms
         public PaddleSharpOcrAlg(AnalysisPipeline pipeline, Dictionary<string, string> preferences)
         {
             _pipeline = pipeline;
-            _snapshotManager = pipeline.SnapshotManager;
 
             _ocrType = preferences["TypeToOCR"].ToLower();
             _scoreThresh = float.Parse(preferences["ScoreThresh"]);
@@ -47,11 +45,14 @@ namespace Handler.Ocr.Algorithms
         {
             _serviceProvider = serviceProvider;
             _eventPublisher = _serviceProvider.GetRequiredService<IPublisher<OcrResultEvent>>();
+
+            var subscriber = serviceProvider.GetService<ISubscriber<ObjectExpiredEvent>>();
+            this.SetSubscriber(subscriber);
         }
 
         public AnalysisResult Analyze(Frame frame)
         {
-            foreach (var detectedObject in frame.DetectedObjects)
+            /*foreach (var detectedObject in frame.DetectedObjects)
             {
                 if (!detectedObject.IsUnderAnalysis)
                 {
@@ -59,6 +60,11 @@ namespace Handler.Ocr.Algorithms
                 }
 
                 if (detectedObject.Label != _ocrType)
+                {
+                    continue;
+                }
+
+                if (detectedObject.Snapshot.Width == 0)
                 {
                     continue;
                 }
@@ -71,13 +77,15 @@ namespace Handler.Ocr.Algorithms
                         Console.WriteLine($"Text: {region.Text}, Score: {region.Score}");
                     }
                 }
-            }
+            }*/
 
             return new AnalysisResult(true);
         }
 
         public override void ProcessEvent(ObjectExpiredEvent @event)
         {
+            var _snapshotManager = _pipeline.SnapshotManager;
+
             if (@event.Label != _ocrType)
             {
                 return;

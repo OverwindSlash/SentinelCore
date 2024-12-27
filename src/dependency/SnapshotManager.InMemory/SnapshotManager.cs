@@ -55,15 +55,16 @@ namespace SnapshotManager.InMemory
 
         private void AddSnapshotOfObjectById(Frame frame)
         {
-            foreach (var obj in frame.DetectedObjects)
+            foreach (var detectedObject in frame.DetectedObjects)
             {
-                if (!obj.IsUnderAnalysis)
+                if (!detectedObject.IsUnderAnalysis)
                 {
                     continue;
                 }
 
-                Mat snapshot = TakeSnapshot(frame, obj.Bbox);
-                AddSnapshotOfObjectById(obj.Id, CalculateFactor(obj), snapshot);
+                Mat snapshot = TakeSnapshot(frame, detectedObject.Bbox);
+                detectedObject.Snapshot = snapshot;
+                AddSnapshotOfObjectById(detectedObject.Id, CalculateFactor(detectedObject), snapshot);
             }
         }
 

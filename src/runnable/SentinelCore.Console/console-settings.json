@@ -2,7 +2,7 @@
   "Pipeline": {
     "DeviceName": "CameraId001",
     //"Uri": "rtsp://admin:CS%40202304@192.168.1.151:554/Streaming/Channels/101?transportmode=unicast&profile=Profile_1",
-    "Uri": "D:\\Video\\Ship\\02.mp4",
+    "Uri": "D:\\Video\\Ship\\01.mp4",
     "FrameLifetime": 200,
     "EnableDebugDisplay": true
   },
@@ -17,8 +17,8 @@
     "VideoStride": 2
   },
   "Detector": {
-    "AssemblyFile": "Detector.YoloV5Onnx.dll",
-    "FullQualifiedClassName": "Detector.YoloV5Onnx.YoloOnnxDetector",
+    "AssemblyFile": "Detector.YoloV11Onnx.dll",
+    "FullQualifiedClassName": "Detector.YoloV11Onnx.YoloOnnxDetector",
     "Parameters": [],
     "ModelPath": "Models\\boatplate.onnx",
     "ModelConfig": "Models\\boatplate.json",
@@ -38,8 +38,8 @@
     "AssemblyFile": "RegionManager.DefinitionBased.dll",
     "FullQualifiedClassName": "RegionManager.DefinitionBased.RegionManager",
     "Parameters": [
-      //"default-region.json",
-      "osd-exclusive-region.json"
+      "default-region.json",
+      //"osd-exclusive-region.json"
     ]
   },
   "Snapshot": {
@@ -67,28 +67,28 @@
     }
   },
   "AnalysisHandlers": [
-    {
-      "AssemblyFile": "Handler.MultiOccurrence.dll",
-      "FullQualifiedClassName": "Handler.MultiOccurrence.Algorithms.MultiOccurrenceAlg",
-      "Parameters": [],
-      "Preferences": {
-        "EventName": "撒网事件",
-        "EventMessage": "侦测到疑似撒网行为",
-        "CloseThreshold": 0.5,
-        "PrimaryType": "net",
-        "AuxiliaryType": "person",
-        "SuppressionSeconds": 2
-      }
-    },
     //{
-    //  "AssemblyFile": "Handler.Ocr.dll",
-    //  "FullQualifiedClassName": "Handler.Ocr.Algorithms.PaddleSharpOcrAlg",
+    //  "AssemblyFile": "Handler.MultiOccurrence.dll",
+    //  "FullQualifiedClassName": "Handler.MultiOccurrence.Algorithms.MultiOccurrenceAlg",
     //  "Parameters": [],
     //  "Preferences": {
-    //    "TypeToOCR": "sign",
-    //    "ScoreThresh": "0.8"
+    //    "EventName": "撒网事件",
+    //    "EventMessage": "侦测到疑似撒网行为",
+    //    "CloseThreshold": 0.5,
+    //    "PrimaryType": "net",
+    //    "AuxiliaryType": "person",
+    //    "SuppressionSeconds": 2
     //  }
-    //}
+    //},
+    {
+      "AssemblyFile": "Handler.Ocr.dll",
+      "FullQualifiedClassName": "Handler.Ocr.Algorithms.PaddleSharpOcrAlg",
+      "Parameters": [],
+      "Preferences": {
+        "TypeToOCR": "sign",
+        "ScoreThresh": "0.6"
+      }
+    }
   ],
   "MessagePoster": [
     {
