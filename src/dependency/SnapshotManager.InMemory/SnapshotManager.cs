@@ -114,8 +114,9 @@ namespace SnapshotManager.InMemory
 
         private float CalculateFactor(DetectedObject obj)
         {
+            return obj.Confidence;
             // Area as order factor.
-            return obj.Width * obj.Height;
+            // return obj.Width * obj.Height;
             // return obj.Width;
         }
 
@@ -143,6 +144,20 @@ namespace SnapshotManager.InMemory
             }
 
             return _snapshotsByScore[id];
+        }
+
+        public Mat GetBestSnapshotByObjectId(string id)
+        {
+            var snapshots = GetObjectSnapshotsByObjectId(id);
+            if (snapshots.Count == 0)
+            {
+                return new Mat();
+            }
+
+            var highestScore = snapshots.Keys.Max();
+            Mat highestSnapshot = snapshots[highestScore];
+
+            return highestSnapshot;
         }
 
         public int GetCachedSnapshotCount()

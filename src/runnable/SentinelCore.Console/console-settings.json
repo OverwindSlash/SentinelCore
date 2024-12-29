@@ -86,6 +86,7 @@
       "Parameters": [],
       "Preferences": {
         "TypeToOCR": "sign",
+        "CarrierType": "boat",
         "ScoreThresh": "0.6"
       }
     }

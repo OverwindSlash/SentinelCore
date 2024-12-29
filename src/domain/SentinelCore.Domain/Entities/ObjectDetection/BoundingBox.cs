@@ -115,5 +115,10 @@ namespace SentinelCore.Domain.Entities.ObjectDetection
             int dy = y1 - y2;
             return (float)Math.Sqrt(dx * dx + dy * dy);
         }
+
+        public bool Contains(BoundingBox other)
+        {
+            return Rectangle.Contains(other.Rectangle);
+        }
     }
 }

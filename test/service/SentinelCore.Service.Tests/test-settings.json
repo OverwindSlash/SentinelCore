@@ -78,14 +78,15 @@
         "AuxiliaryType": "person",
         "SuppressionSeconds": 3
       }
-    },
+    }
     //{
     //  "AssemblyFile": "Handler.Ocr.dll",
     //  "FullQualifiedClassName": "Handler.Ocr.Algorithms.PaddleSharpOcrAlg",
     //  "Parameters": [],
     //  "Preferences": {
     //    "TypeToOCR": "sign",
-    //    "ScoreThresh": "0.8"
+    //    "CarrierType": "boat",
+    //    "ScoreThresh": "0.6"
     //  }
     //}
   ],

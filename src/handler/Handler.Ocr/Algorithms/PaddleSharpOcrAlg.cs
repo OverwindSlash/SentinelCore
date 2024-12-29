@@ -1,15 +1,16 @@
-﻿using Handler.Ocr.Events;
+﻿using Handler.Ocr.Actions;
+using Handler.Ocr.Events;
 using MessagePipe;
 using Microsoft.Extensions.DependencyInjection;
 using OpenCvSharp;
 using Sdcb.PaddleOCR;
 using Sdcb.PaddleOCR.Models.Local;
 using SentinelCore.Domain.Abstractions.AnalysisHandler;
-using SentinelCore.Domain.Abstractions.SnapshotManager;
 using SentinelCore.Domain.Entities.AnalysisEngine;
 using SentinelCore.Domain.Entities.VideoStream;
 using SentinelCore.Domain.Events.AnalysisEngine;
 using SentinelCore.Service.Pipeline;
+using System.Collections.Concurrent;
 
 namespace Handler.Ocr.Algorithms
 {
@@ -20,6 +21,7 @@ namespace Handler.Ocr.Algorithms
         private IPublisher<OcrResultEvent> _eventPublisher;
 
         private readonly string _ocrType;
+        private readonly string _carrierType;
         private readonly PaddleOcrAll _paddleOcrAll;
         private readonly float _scoreThresh;
 
@@ -27,11 +29,14 @@ namespace Handler.Ocr.Algorithms
 
         private IServiceProvider _serviceProvider;
 
+        private ConcurrentDictionary<string, HashSet<string>> _carrierAndOcrIds;
+
         public PaddleSharpOcrAlg(AnalysisPipeline pipeline, Dictionary<string, string> preferences)
         {
             _pipeline = pipeline;
 
             _ocrType = preferences["TypeToOCR"].ToLower();
+            _carrierType = preferences["CarrierType"].ToLower(); 
             _scoreThresh = float.Parse(preferences["ScoreThresh"]);
 
             _paddleOcrAll = new PaddleOcrAll(LocalFullModels.ChineseV4)
@@ -39,6 +44,8 @@ namespace Handler.Ocr.Algorithms
                 AllowRotateDetection = true,
                 Enable180Classification = false,
             };
+
+            _carrierAndOcrIds = new ConcurrentDictionary<string, HashSet<string>>();
         }
 
         public void SetServiceProvider(IServiceProvider serviceProvider)
@@ -52,33 +59,41 @@ namespace Handler.Ocr.Algorithms
 
         public AnalysisResult Analyze(Frame frame)
         {
-            /*foreach (var detectedObject in frame.DetectedObjects)
+            foreach (var carrierObj in frame.DetectedObjects)
             {
-                if (!detectedObject.IsUnderAnalysis)
-                {
+                if (!carrierObj.IsUnderAnalysis)
                     continue;
-                }
 
-                if (detectedObject.Label != _ocrType)
-                {
+                if (carrierObj.Label != _carrierType)
                     continue;
-                }
 
-                if (detectedObject.Snapshot.Width == 0)
+                foreach (var ocrObj in frame.DetectedObjects)
                 {
-                    continue;
-                }
+                    if (carrierObj == ocrObj)
+                        continue;
 
-                PaddleOcrResult result = _paddleOcrAll.Run(detectedObject.Snapshot);
-                foreach (PaddleOcrResultRegion region in result.Regions)
-                {
-                    if (region.Score > _scoreThresh)
+                    if (!ocrObj.IsUnderAnalysis)
+                        continue;
+
+                    if (ocrObj.Label != _ocrType)
+                        continue;
+
+                    if (!carrierObj.Bbox.Contains(ocrObj.Bbox))
+                        continue;
+
+                    if (!_carrierAndOcrIds.ContainsKey(carrierObj.Id))
                     {
-                        Console.WriteLine($"Text: {region.Text}, Score: {region.Score}");
+                        _carrierAndOcrIds.TryAdd(carrierObj.Id, new HashSet<string>());
+                    }
+
+                    _carrierAndOcrIds.TryGetValue(carrierObj.Id, out var ocrObjSet);
+                    if (ocrObjSet != null)
+                    {
+                        ocrObjSet.Add(ocrObj.Id);
                     }
                 }
-            }*/
-
+            }
+            
             return new AnalysisResult(true);
         }
 
@@ -91,21 +106,38 @@ namespace Handler.Ocr.Algorithms
                 return;
             }
 
-            var snapshots = _snapshotManager.GetObjectSnapshotsByObjectId(@event.Id);
-            if (snapshots.Count == 0)
+            Mat ocrSnapshot = _snapshotManager.GetBestSnapshotByObjectId(@event.Id);
+            if (ocrSnapshot.Width == 0)
             {
                 return;
             }
 
-            var highestScore = snapshots.Keys.Max();
-            Mat highestSnapshot = snapshots[highestScore];
-
-            PaddleOcrResult result = _paddleOcrAll.Run(highestSnapshot);
+            PaddleOcrResult result = _paddleOcrAll.Run(ocrSnapshot);
             foreach (PaddleOcrResultRegion region in result.Regions)
             {
+                string carrierId = string.Empty;
+
                 if (region.Score > _scoreThresh)
                 {
-                    Console.WriteLine($"ObjId:{@event.Id} Text: {region.Text}, Score: {region.Score}");
+                    foreach (var carrierObjId in _carrierAndOcrIds.Keys)
+                    {
+                        var ocrObjIds = _carrierAndOcrIds[carrierObjId];
+
+                        if (ocrObjIds.Contains(@event.Id))
+                        {
+                            carrierId = carrierObjId;
+                            break;
+                        }
+                    }
+
+                    if (string.IsNullOrEmpty(carrierId))
+                    {
+                        continue;
+                    }
+
+                    OcrActions.SaveEventImages(_snapshotManager.SnapshotDir, carrierId, @event.Id, ocrSnapshot);
+
+                    Console.WriteLine($"CarrierObjId:{carrierId} OcrObjId:{@event.Id} Text: {region.Text}, Score: {region.Score}");
                 }
             }
         }

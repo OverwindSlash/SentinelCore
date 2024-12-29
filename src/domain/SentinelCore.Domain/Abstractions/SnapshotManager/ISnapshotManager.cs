@@ -16,6 +16,7 @@ namespace SentinelCore.Domain.Abstractions.SnapshotManager
         public int GetCachedSceneCount();
 
         public SortedList<float, Mat> GetObjectSnapshotsByObjectId(string objId);
+        public Mat GetBestSnapshotByObjectId(string objId);
         public int GetCachedSnapshotCount();
 
         Mat TakeSnapshot(Frame frame, BoundingBox bboxs);
