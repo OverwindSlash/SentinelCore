@@ -2,21 +2,26 @@ using OpenCvSharp;
 using SentinelCore.Domain.Abstractions.MediaLoader;
 using SentinelCore.Domain.DataStructures;
 using SentinelCore.Domain.Entities.VideoStream;
+using Serilog;
 using System.Diagnostics;
 
 namespace MediaLoader.OpenCV;
 
 public class VideoLoader : IVideoLoader
 {
-    private string _deviceId;
+    private readonly string _deviceId;
     private VideoCapture _capture;
     private VideoSpecs _videoSpecs;
     private VideoCapturePara _videoCapturePara;
     private readonly IConcurrentBoundedQueue<Frame> _frameBuffer;
     private string _uri;
-    private bool _isInPlaying;
+
+    private volatile bool _isInPlaying;
     private long _index;
-    
+
+    private readonly VideoCaptureAPIs _videoCaptureApIs;
+
+    private CancellationTokenSource _cancellationTokenSource;
 
     public VideoLoader()
         : this("tempId", 100)
@@ -31,6 +36,8 @@ public class VideoLoader : IVideoLoader
         _frameBuffer = new ConcurrentBoundedQueue<Frame>(bufferSize);
         _isInPlaying = false;
         _index = 0;
+
+        _videoCaptureApIs = VideoCaptureAPIs.FFMPEG;
     }
 
     public string DeviceId => _deviceId;
@@ -46,7 +53,7 @@ public class VideoLoader : IVideoLoader
     {
         Close();
 
-        _capture = new VideoCapture(uri, VideoCaptureAPIs.FFMPEG);
+        _capture = new VideoCapture(uri, _videoCaptureApIs);
         if (!_capture.IsOpened())
         {
             throw new ApplicationException($"Stream source '{uri}' not available.");
@@ -77,10 +84,12 @@ public class VideoLoader : IVideoLoader
         }
 
         _isInPlaying = true;
+        _cancellationTokenSource = new CancellationTokenSource();
+        var token = _cancellationTokenSource.Token;
 
         var stopwatch = Stopwatch.StartNew();
 
-        while (_isInPlaying)
+        while (_isInPlaying && !token.IsCancellationRequested)
         {
             #region retrive specified amount of frame for debug
             if (debugMode && debugFrameCount-- <= 0)
@@ -95,9 +104,10 @@ public class VideoLoader : IVideoLoader
                 {
                     break;
                 }
-
+                
+                // Reconnect
                 _capture.Release();
-                _capture = new VideoCapture(_uri, VideoCaptureAPIs.FFMPEG);
+                _capture = new VideoCapture(_uri, _videoCaptureApIs);
                 continue;
             }
 
@@ -123,7 +133,7 @@ public class VideoLoader : IVideoLoader
             long elapsedTimeMs = stopwatch.ElapsedMilliseconds;
             var sleepMilliSec = (int)Math.Min(100, offsetMilliSec - elapsedTimeMs);
 
-            //Console.WriteLine($"FM:{offsetMilliSec} EM:{elapsedTimeMs} Diff:{offsetMilliSec - elapsedTimeMs}");
+            Log.Debug($"FM:{offsetMilliSec} EM:{elapsedTimeMs} Diff:{offsetMilliSec - elapsedTimeMs}");
 
             if (sleepMilliSec > 0)
             {
@@ -133,7 +143,7 @@ public class VideoLoader : IVideoLoader
             var frame = new Frame(_deviceId, frameId, offsetMilliSec, image);
             _frameBuffer.Enqueue(frame);
 
-            //Console.WriteLine(_frameBuffer.Count);
+            Log.Debug($"Buffer frame count:{_frameBuffer.Count}");
         }
 
         Close();
@@ -147,6 +157,7 @@ public class VideoLoader : IVideoLoader
         }
 
         _isInPlaying = false;
+        _cancellationTokenSource?.Cancel();
     }
 
     public Frame RetrieveFrame()

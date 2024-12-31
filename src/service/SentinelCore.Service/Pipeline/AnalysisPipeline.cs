@@ -15,6 +15,7 @@ using SentinelCore.Domain.Entities.VideoStream;
 using SentinelCore.Domain.Events.AnalysisEngine;
 using SentinelCore.Service.Pipeline.Settings;
 using System.Reflection;
+using Serilog;
 
 namespace SentinelCore.Service.Pipeline
 {
@@ -49,6 +50,8 @@ namespace SentinelCore.Service.Pipeline
 
         public AnalysisPipeline(IConfiguration config)
         {
+            Log.Information("Create analysis pipeline...");
+
             LoadAllSettings(config);
 
             RegisterComponents();
@@ -58,6 +61,8 @@ namespace SentinelCore.Service.Pipeline
             _slideWindow.SetPublisher(_provider.GetRequiredService<IPublisher<ObjectExpiredEvent>>());
 
             _analyzedFrameBuffer = new VideoFrameBuffer(_pipeLineSettings.FrameLifetime);
+
+            Log.Information("Analysis pipeline created.");
         }
 
         private void LoadAllSettings(IConfiguration config)
@@ -117,6 +122,8 @@ namespace SentinelCore.Service.Pipeline
             }
 
             _provider = _services.BuildServiceProvider();
+
+            Log.Information("Register base components successfully.");
         }
 
         private static T CreateInstance<T>(string assemblyFile, string fullQualifiedClassName, object?[] parameters = null)
@@ -143,11 +150,13 @@ namespace SentinelCore.Service.Pipeline
 
             var videoTask = Task.Run(() =>
             {
+                Log.Information($"Open video source: {_videoLoader.Specs.Uri}");
                 _videoLoader.Play(_mediaLoaderSettings.VideoStride);
             });
 
             var analysisTask = Task.Run(() =>
             {
+                Log.Information($"Begin analysis process...");
                 while (!videoTask.IsCompleted || _videoLoader.BufferedFrameCount != 0)
                 {
                     var frame = _videoLoader.RetrieveFrame();
@@ -177,6 +186,8 @@ namespace SentinelCore.Service.Pipeline
             });
 
             Task.WaitAll(analysisTask, videoTask, displayTask);
+
+            Log.Information($"Analysis complete.");
         }
 
         private void InitializeComponents()
@@ -213,6 +224,8 @@ namespace SentinelCore.Service.Pipeline
             // 最后再由_snapshot 组件处理对象和帧过期事件, 以防止分析过程中截图被清理
             _snapshotManager.SetSubscriber(_provider.GetRequiredService<ISubscriber<FrameExpiredEvent>>());
             _snapshotManager.SetSubscriber(_provider.GetRequiredService<ISubscriber<ObjectExpiredEvent>>());
+
+            Log.Information("Initialize base components successfully.");
         }
 
         private Frame Analyze(Frame frame)

@@ -58,13 +58,6 @@ namespace MediaLoader.FFMpeg
         {
             Close();
 
-            /*AVDictionary* options = null;
-            ffmpeg.av_dict_set(&options, "buffer_size", "409600", 0); // 400KB
-            ffmpeg.av_dict_set(&options, "max_delay", "500000", 0);   // 最大延迟为500ms
-            ffmpeg.av_dict_set(&options, "reorder_queue_size", "10", 0);
-            ffmpeg.av_dict_set(&options, "stimeout", "3000000", 0); // 单位为微秒，3秒超时
-            ffmpeg.av_dict_set(&options, "rtsp_transport", "udp", 0);*/
-
             // Open video file or stream
             formatContext = ffmpeg.avformat_alloc_context();
             fixed (AVFormatContext** pFormatContext = &formatContext)
