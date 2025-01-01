@@ -61,6 +61,15 @@ namespace MediaLoader.FFMpeg
         {
             Close();
 
+            /*AVDictionary* options = null;
+
+            // 设置读取缓冲区为 4MB
+            ffmpeg.av_dict_set(&options, "buffer_size", "4194304", 0);
+
+            // 降低分析时间为 1 秒，减少打开文件的延迟
+            ffmpeg.av_dict_set(&options, "analyzeduration", "1000000", 0);
+            ffmpeg.av_dict_set(&options, "probesize", "1000000", 0);*/
+
             // Open video file or stream
             _formatContext = ffmpeg.avformat_alloc_context();
             fixed (AVFormatContext** pFormatContext = &_formatContext)
@@ -68,6 +77,8 @@ namespace MediaLoader.FFMpeg
                 if (ffmpeg.avformat_open_input(pFormatContext, uri, null, null) != 0)
                     throw new ApplicationException($"Could not open the input stream: {uri}");
             }
+
+            //ffmpeg.av_dict_free(&options);
 
             // Retrieve stream information
             if (ffmpeg.avformat_find_stream_info(_formatContext, null) < 0)
@@ -212,9 +223,10 @@ namespace MediaLoader.FFMpeg
                         FrameMilliSec = (long)(_frame->pts * ffmpeg.av_q2d(_stream->time_base) * 1000);
                         //Console.WriteLine($"FM:{FrameMilliSec}");
 
-                        Mat mat = ConvertFrameToMat(_frame);
+                        Mat matImage = ConvertFrameToMat(_frame);
                         ffmpeg.av_packet_unref(_packet);
-                        return mat;
+
+                        return matImage;
                     }
                 }
                 ffmpeg.av_packet_unref(_packet);

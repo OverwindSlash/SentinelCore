@@ -11,6 +11,7 @@ using SentinelCore.Domain.Entities.VideoStream;
 using SentinelCore.Domain.Events.AnalysisEngine;
 using SentinelCore.Service.Pipeline;
 using System.Collections.Concurrent;
+using Serilog;
 
 namespace Handler.Ocr.Algorithms
 {
@@ -112,7 +113,9 @@ namespace Handler.Ocr.Algorithms
                 return;
             }
 
-            PaddleOcrResult result = _paddleOcrAll.Run(ocrSnapshot);
+            Mat sharpenedImage = SharpenImageText(ocrSnapshot);
+
+            PaddleOcrResult result = _paddleOcrAll.Run(sharpenedImage);
             foreach (PaddleOcrResultRegion region in result.Regions)
             {
                 string carrierId = string.Empty;
@@ -137,9 +140,26 @@ namespace Handler.Ocr.Algorithms
 
                     OcrActions.SaveEventImages(_snapshotManager.SnapshotDir, carrierId, @event.Id, ocrSnapshot);
 
-                    Console.WriteLine($"CarrierObjId:{carrierId} OcrObjId:{@event.Id} Text: {region.Text}, Score: {region.Score}");
+                    Log.Information($"CarrierObjId:{carrierId} OcrObjId:{@event.Id} Text: {region.Text}, Score: {region.Score}");
                 }
             }
+        }
+
+        private Mat SharpenImageText(Mat ocrSnapshot)
+        {
+            // 1. 转换为灰度图
+            Mat gray = new Mat();
+            Cv2.CvtColor(ocrSnapshot, gray, ColorConversionCodes.BGR2GRAY);
+
+            // 2. 去除噪声
+            Mat denoised = new Mat();
+            Cv2.GaussianBlur(gray, denoised, new Size(3, 3), 0);
+
+            // 3. 对比度增强（直方图均衡化）
+            /*Mat equalized = new Mat();
+            Cv2.EqualizeHist(denoised, equalized);*/
+
+            return denoised;
         }
 
         public override void Dispose()

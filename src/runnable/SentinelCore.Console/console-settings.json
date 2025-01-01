@@ -49,8 +49,8 @@
     "Preferences": {
       "SnapshotsDir": "Snapshots",
       "SaveBestSnapshot": true,
-      "MaxSnapshots": 10,
-      "MinSnapshotWidth": 200,
+      "MaxSnapshots": 20,
+      "MinSnapshotWidth": 100,
       "MinSnapshotHeight": 50
     }
   },
