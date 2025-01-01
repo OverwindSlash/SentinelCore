@@ -19,13 +19,16 @@ namespace MediaLoader.FFMpeg
         private bool _isInPlaying;
         private long _index;
 
-        private AVFormatContext* formatContext;
-        private AVCodecContext* codecContext;
-        private AVFrame* frame;
-        private AVPacket* packet;
-        private int videoStreamIndex = -1;
-        private SwsContext* swsContext;
-        private bool useHardwareAcceleration;
+        private AVFormatContext* _formatContext;
+        private AVCodecContext* _codecContext;
+        private AVStream* _stream;
+        private AVFrame* _frame;
+        private AVPacket* _packet;
+        private int _videoStreamIndex = -1;
+        private SwsContext* _swsContext;
+        private readonly bool _useHardwareAcceleration;
+
+        private CancellationTokenSource _cancellationTokenSource;
 
         public string DeviceId => _deviceId;
         public int Width => _videoSpecs.Width;
@@ -51,7 +54,7 @@ namespace MediaLoader.FFMpeg
             DynamicallyLoadedBindings.LibrariesPath = @"runtimes\win-x64\ffmpeg";
             DynamicallyLoadedBindings.Initialize();
 
-            useHardwareAcceleration = true;
+            _useHardwareAcceleration = true;
         }
 
         public void Open(string uri)
@@ -59,84 +62,65 @@ namespace MediaLoader.FFMpeg
             Close();
 
             // Open video file or stream
-            formatContext = ffmpeg.avformat_alloc_context();
-            fixed (AVFormatContext** pFormatContext = &formatContext)
+            _formatContext = ffmpeg.avformat_alloc_context();
+            fixed (AVFormatContext** pFormatContext = &_formatContext)
             {
                 if (ffmpeg.avformat_open_input(pFormatContext, uri, null, null) != 0)
-                    throw new ApplicationException("Could not open the input stream.");
+                    throw new ApplicationException($"Could not open the input stream: {uri}");
             }
 
             // Retrieve stream information
-            if (ffmpeg.avformat_find_stream_info(formatContext, null) < 0)
+            if (ffmpeg.avformat_find_stream_info(_formatContext, null) < 0)
                 throw new ApplicationException("Could not find stream information.");
 
             // Find the video stream
-            for (int i = 0; i < formatContext->nb_streams; i++)
+            for (int i = 0; i < _formatContext->nb_streams; i++)
             {
-                if (formatContext->streams[i]->codecpar->codec_type == AVMediaType.AVMEDIA_TYPE_VIDEO)
+                if (_formatContext->streams[i]->codecpar->codec_type == AVMediaType.AVMEDIA_TYPE_VIDEO)
                 {
-                    videoStreamIndex = i;
+                    _videoStreamIndex = i;
                     break;
                 }
             }
 
-            if (videoStreamIndex == -1)
+            if (_videoStreamIndex == -1)
                 throw new ApplicationException("Could not find video stream.");
 
-            var stream = formatContext->streams[videoStreamIndex];
+            // Get video stream
+            _stream = _formatContext->streams[_videoStreamIndex];
 
-            // 获取帧率（avg_frame_rate）
-            FrameRate = ffmpeg.av_q2d(stream->avg_frame_rate); // 转换为浮动数字
+            // Get frame rate（avg_frame_rate）
+            FrameRate = ffmpeg.av_q2d(_stream->avg_frame_rate); // 转换为浮动数字
             if (double.IsNaN(FrameRate))
             {
                 FrameRate = 25;
             }
 
-            // 获取帧总数（nb_frames）
-            FrameCount = stream->nb_frames;
+            // Get frame count（nb_frames）
+            FrameCount = _stream->nb_frames;
 
             // Get codec and create context
-            var codecParams = formatContext->streams[videoStreamIndex]->codecpar;
+            var codecParams = _stream->codecpar;
             var codec = ffmpeg.avcodec_find_decoder(codecParams->codec_id);
 
             if (codec == null)
                 throw new ApplicationException("Unsupported codec.");
 
-            codecContext = ffmpeg.avcodec_alloc_context3(codec);
-            ffmpeg.avcodec_parameters_to_context(codecContext, codecParams);
+            _codecContext = ffmpeg.avcodec_alloc_context3(codec);
+            if (ffmpeg.avcodec_parameters_to_context(_codecContext, codecParams) < 0)
+                throw new ApplicationException("Could not copy codec parameters.");
 
             // Enable hardware acceleration if required
-            if (useHardwareAcceleration)
+            if (_useHardwareAcceleration)
             {
-                // Replace with the appropriate hardware acceleration configuration (e.g., "cuda" or "dxva2")
-                var hwDeviceType = ffmpeg.av_hwdevice_find_type_by_name("dxva2");
-                var avhwDeviceType = ffmpeg.avcodec_get_hw_config(codec, 0)->device_type;
-                if (avhwDeviceType == hwDeviceType)
-                {
-                    /*codecContext->hw_device_ctx = ffmpeg.av_hwdevice_ctx_alloc(hwDeviceType);
-                    ffmpeg.av_hwdevice_ctx_init(codecContext->hw_device_ctx);*/
-                }
-                else
-                {
-                    Console.WriteLine("Hardware acceleration not supported for this codec on this device.");
-                }
+                _codecContext->hw_device_ctx = ffmpeg.av_hwdevice_ctx_alloc(AVHWDeviceType.AV_HWDEVICE_TYPE_OPENCL);
             }
 
             // Open codec
-            if (ffmpeg.avcodec_open2(codecContext, codec, null) < 0)
+            if (ffmpeg.avcodec_open2(_codecContext, codec, null) < 0)
                 throw new ApplicationException("Could not open codec.");
-
-            frame = ffmpeg.av_frame_alloc();
-            packet = ffmpeg.av_packet_alloc();
-
-            // Initialize the scaling context
-            swsContext = ffmpeg.sws_getContext(
-                codecContext->width, codecContext->height, codecContext->pix_fmt,
-                codecContext->width, codecContext->height, AVPixelFormat.AV_PIX_FMT_BGR24,
-                ffmpeg.SWS_BILINEAR, null, null, null
-            );
-
-            _videoSpecs = new VideoSpecs(uri, codecContext->width, codecContext->height, FrameRate, (int)FrameCount);
+            
+            _videoSpecs = new VideoSpecs(uri, _codecContext->width, _codecContext->height, FrameRate, (int)FrameCount);
 
             _isOpened = true;
         }
@@ -154,15 +138,28 @@ namespace MediaLoader.FFMpeg
                 throw new Exception($"Stream source not opened.");
             }
 
+            // Prepare video frame and packet
+            _frame = ffmpeg.av_frame_alloc();
+            _packet = ffmpeg.av_packet_alloc();
+
+
+            // Initialize the scaling context
+            _swsContext = ffmpeg.sws_getContext(
+                _codecContext->width, _codecContext->height, _codecContext->pix_fmt,
+                _codecContext->width, _codecContext->height, AVPixelFormat.AV_PIX_FMT_BGR24,
+                ffmpeg.SWS_LANCZOS, null, null, null
+            );
+
             _isInPlaying = true;
+            _cancellationTokenSource = new CancellationTokenSource();
+            var token = _cancellationTokenSource.Token;
 
             var stopwatch = Stopwatch.StartNew();
-
             var frameId = 0;
             int interval = (int)(1000 / FrameRate);
-            Mat matImage = GetNextFrame();
 
-            while (_isInPlaying && matImage != null)
+            Mat matImage = GetNextFrame();
+            while (_isInPlaying && !token.IsCancellationRequested)
             {
                 #region retrive specified amount of frame for debug
                 if (debugMode && debugFrameCount-- <= 0)
@@ -185,8 +182,11 @@ namespace MediaLoader.FFMpeg
                     Thread.Sleep(sleepMilliSec);
                 }
 
-                var frame = new Frame(_deviceId, frameId, FrameMilliSec, matImage);
-                _frameBuffer.Enqueue(frame);
+                if (matImage.Width != 0)
+                {
+                    var frame = new Frame(_deviceId, frameId, FrameMilliSec, matImage);
+                    _frameBuffer.Enqueue(frame);
+                }
 
                 // Continue get frame.
                 matImage = GetNextFrame();
@@ -199,38 +199,38 @@ namespace MediaLoader.FFMpeg
 
         private Mat GetNextFrame()
         {
-            while (ffmpeg.av_read_frame(formatContext, packet) >= 0)
+            while (ffmpeg.av_read_frame(_formatContext, _packet) >= 0)
             {
-                if (packet->stream_index == videoStreamIndex)
+                if (_packet->stream_index == _videoStreamIndex)
                 {
-                    if (ffmpeg.avcodec_send_packet(codecContext, packet) < 0)
+                    if (ffmpeg.avcodec_send_packet(_codecContext, _packet) < 0)
                         continue;
 
-                    if (ffmpeg.avcodec_receive_frame(codecContext, frame) == 0)
+                    if (ffmpeg.avcodec_receive_frame(_codecContext, _frame) == 0)
                     {
                         // 计算当前帧的毫秒偏移量
-                        FrameMilliSec = (long)(frame->pts * ffmpeg.av_q2d(formatContext->streams[videoStreamIndex]->time_base) * 1000);
+                        FrameMilliSec = (long)(_frame->pts * ffmpeg.av_q2d(_stream->time_base) * 1000);
                         //Console.WriteLine($"FM:{FrameMilliSec}");
 
-                        Mat mat = ConvertFrameToMat(frame);
-                        ffmpeg.av_packet_unref(packet);
+                        Mat mat = ConvertFrameToMat(_frame);
+                        ffmpeg.av_packet_unref(_packet);
                         return mat;
                     }
                 }
-                ffmpeg.av_packet_unref(packet);
+                ffmpeg.av_packet_unref(_packet);
             }
-            return null;
+            return new Mat();
         }
 
         private Mat ConvertFrameToMat(AVFrame* frame)
         {
-            var mat = new Mat(codecContext->height, codecContext->width, MatType.CV_8UC3);
+            var mat = new Mat(_codecContext->height, _codecContext->width, MatType.CV_8UC3);
             var dstData = new FFmpeg.AutoGen.byte_ptrArray4 { [0] = mat.DataPointer };
             var dstLinesize = new FFmpeg.AutoGen.int_array4 { [0] = (int)mat.Step(0) };
 
             ffmpeg.sws_scale(
-                swsContext,
-                frame->data, frame->linesize, 0, codecContext->height,
+                _swsContext,
+                frame->data, frame->linesize, 0, _codecContext->height,
                 dstData, dstLinesize
             );
 
@@ -245,6 +245,7 @@ namespace MediaLoader.FFMpeg
             }
 
             _isInPlaying = false;
+            _cancellationTokenSource?.Cancel();
         }
 
         public Frame RetrieveFrame()
@@ -259,24 +260,24 @@ namespace MediaLoader.FFMpeg
 
         public void Dispose()
         {
-            ffmpeg.sws_freeContext(swsContext);
+            ffmpeg.sws_freeContext(_swsContext);
 
-            fixed (AVFrame** pFrame = &frame)
+            fixed (AVFrame** pFrame = &_frame)
             {
                 ffmpeg.av_frame_free(pFrame);
             }
 
-            fixed (AVPacket** pPacket = &packet)
+            fixed (AVPacket** pPacket = &_packet)
             {
                 ffmpeg.av_packet_free(pPacket);
             }
 
-            fixed (AVCodecContext** pCodecContext = &codecContext)
+            fixed (AVCodecContext** pCodecContext = &_codecContext)
             {
                 ffmpeg.avcodec_free_context(pCodecContext);
             }
 
-            fixed (AVFormatContext** pFormatContext = &formatContext)
+            fixed (AVFormatContext** pFormatContext = &_formatContext)
             {
                 ffmpeg.avformat_close_input(pFormatContext);
             }
