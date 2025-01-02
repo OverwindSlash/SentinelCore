@@ -10,8 +10,8 @@ using SentinelCore.Domain.Entities.AnalysisEngine;
 using SentinelCore.Domain.Entities.VideoStream;
 using SentinelCore.Domain.Events.AnalysisEngine;
 using SentinelCore.Service.Pipeline;
-using System.Collections.Concurrent;
 using Serilog;
+using System.Collections.Concurrent;
 
 namespace Handler.Ocr.Algorithms
 {
@@ -32,6 +32,13 @@ namespace Handler.Ocr.Algorithms
 
         private ConcurrentDictionary<string, HashSet<string>> _carrierAndOcrIds;
 
+        private readonly Mat _kernelSharp = Mat.FromPixelData(3, 3, MatType.CV_32F, new float[,]
+        {
+            { 0, -1, 0 },
+            { -1, 5, -1 },
+            { 0, -1, 0 }
+        });
+
         public PaddleSharpOcrAlg(AnalysisPipeline pipeline, Dictionary<string, string> preferences)
         {
             _pipeline = pipeline;
@@ -40,7 +47,7 @@ namespace Handler.Ocr.Algorithms
             _carrierType = preferences["CarrierType"].ToLower(); 
             _scoreThresh = float.Parse(preferences["ScoreThresh"]);
 
-            _paddleOcrAll = new PaddleOcrAll(LocalFullModels.ChineseV4)
+            _paddleOcrAll = new PaddleOcrAll(LocalFullModels.ChineseV3)
             {
                 AllowRotateDetection = true,
                 Enable180Classification = false,
@@ -148,18 +155,18 @@ namespace Handler.Ocr.Algorithms
         private Mat SharpenImageText(Mat ocrSnapshot)
         {
             // 1. 转换为灰度图
-            Mat gray = new Mat();
+            using Mat gray = new Mat();
             Cv2.CvtColor(ocrSnapshot, gray, ColorConversionCodes.BGR2GRAY);
 
             // 2. 去除噪声
-            Mat denoised = new Mat();
+            using Mat denoised = new Mat();
             Cv2.GaussianBlur(gray, denoised, new Size(3, 3), 0);
 
-            // 3. 对比度增强（直方图均衡化）
-            /*Mat equalized = new Mat();
-            Cv2.EqualizeHist(denoised, equalized);*/
+            // 3. 图像锐化
+            Mat denoisedSharpened = new Mat();
+            Cv2.Filter2D(denoised, denoisedSharpened, -1, _kernelSharp);
 
-            return denoised;
+            return denoisedSharpened;
         }
 
         public override void Dispose()

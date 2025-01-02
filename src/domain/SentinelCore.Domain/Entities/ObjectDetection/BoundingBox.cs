@@ -120,5 +120,15 @@ namespace SentinelCore.Domain.Entities.ObjectDetection
         {
             return Rectangle.Contains(other.Rectangle);
         }
+
+        // Expansion bbox by percentage
+        public BoundingBox Expand(float percentage)
+        {
+            int newWidth = (int)(Width * (1 + percentage));
+            int newHeight = (int)(Height * (1 + percentage));
+            int newX = X - (newWidth - Width) / 2;
+            int newY = Y - (newHeight - Height) / 2;
+            return new BoundingBox(LabelId, Label, Confidence, newX, newY, newHeight, newWidth);
+        }
     }
 }
