@@ -2,7 +2,7 @@
   "Pipeline": {
     "DeviceName": "CameraId001",
     //"Uri": "rtsp://admin:CS%40202304@192.168.1.151:554/Streaming/Channels/101?transportmode=unicast&profile=Profile_1",
-    "Uri": "D:\\Video\\Ship\\02.mp4",
+    "Uri": "D:\\video\\Ship\\02.mp4",
     "FrameLifetime": 200,
     "EnableDebugDisplay": true
   },
@@ -49,7 +49,7 @@
     "Preferences": {
       "SnapshotsDir": "Snapshots",
       "SaveBestSnapshot": true,
-      "MaxSnapshots": 20,
+      "MaxSnapshots": 10,
       "MinSnapshotWidth": 100,
       "MinSnapshotHeight": 50
     }
@@ -86,7 +86,7 @@
       "Parameters": [],
       "Preferences": {
         "TypeToOCR": "sign",
-        "CarrierType": "boat",
+        "CarrierType": "ship",
         "ScoreThresh": "0.6"
       }
     }

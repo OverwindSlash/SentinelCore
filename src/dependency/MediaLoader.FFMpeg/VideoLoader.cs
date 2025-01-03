@@ -16,7 +16,7 @@ namespace MediaLoader.FFMpeg
         private readonly IConcurrentBoundedQueue<Frame> _frameBuffer;
         private string _uri;
         private bool _isOpened;
-        private bool _isInPlaying;
+        private volatile bool _isInPlaying;
         private long _index;
 
         private AVFormatContext* _formatContext;
@@ -231,6 +231,9 @@ namespace MediaLoader.FFMpeg
                 }
                 ffmpeg.av_packet_unref(_packet);
             }
+
+            _cancellationTokenSource?.Cancel();
+            _isInPlaying = false;
             return new Mat();
         }
 
@@ -256,8 +259,8 @@ namespace MediaLoader.FFMpeg
                 throw new ApplicationException($"Stream source not opened.");
             }
 
-            _isInPlaying = false;
             _cancellationTokenSource?.Cancel();
+            _isInPlaying = false;
         }
 
         public Frame RetrieveFrame()

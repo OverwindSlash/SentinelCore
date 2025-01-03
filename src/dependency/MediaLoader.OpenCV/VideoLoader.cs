@@ -70,6 +70,9 @@ public class VideoLoader : IVideoLoader
 
     public void Close()
     {
+        _cancellationTokenSource?.Cancel();
+        _isInPlaying = false;
+
         if (_capture != null && _capture.IsOpened())
         {
             _capture.Release();
@@ -100,7 +103,7 @@ public class VideoLoader : IVideoLoader
 
             if (!_capture.Grab())
             {
-                if (_index > _capture.FrameCount)
+                if (_index >= _capture.FrameCount)
                 {
                     break;
                 }
@@ -156,8 +159,8 @@ public class VideoLoader : IVideoLoader
             throw new ApplicationException($"Stream source not opened.");
         }
 
-        _isInPlaying = false;
         _cancellationTokenSource?.Cancel();
+        _isInPlaying = false;
     }
 
     public Frame RetrieveFrame()
