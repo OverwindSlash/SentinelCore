@@ -145,7 +145,9 @@ namespace Handler.Ocr.Algorithms
                         continue;
                     }
 
-                    OcrActions.SaveEventImages(_snapshotManager.SnapshotDir, carrierId, @event.Id, ocrSnapshot);
+                    Mat carrierSnapshot = _snapshotManager.GetBestSnapshotByObjectId(carrierId);
+
+                    OcrActions.SaveEventImages(_snapshotManager.SnapshotDir, carrierId, carrierSnapshot, @event.Id, ocrSnapshot, region.Text);
 
                     Log.Information($"CarrierObjId:{carrierId} OcrObjId:{@event.Id} Text: {region.Text}, Score: {region.Score}");
                 }

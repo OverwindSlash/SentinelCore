@@ -5,7 +5,9 @@ namespace Handler.Ocr.Actions
 {
     public class OcrActions
     {
-        public static string SaveEventImages(string snapshotDir, string carrierSnapshotId, string ocrSnapshotId, Mat ocrSnapshot)
+        public static string SaveEventImages(string snapshotDir, 
+            string carrierSnapshotId, Mat carrierSnapshot, 
+            string ocrSnapshotId, Mat ocrSnapshot, string ocrResult)
         {
             if (string.IsNullOrEmpty(carrierSnapshotId) || string.IsNullOrEmpty(ocrSnapshotId) || ocrSnapshot == null)
             {
@@ -16,11 +18,20 @@ namespace Handler.Ocr.Actions
             string carrierFilename = carrierSnapshotId.Replace(':', '_');
             string ocrFilename = ocrSnapshotId.Replace(':', '_');
 
-            string path = Path.Combine(snapshotDir, "Events");
-            path.EnsureDirExistence();
+            string basePath = Path.Combine(snapshotDir, "Ocr");
+            basePath.EnsureDirExistence();
 
-            var ocrFileSavePath = Path.Combine(path, $"{carrierFilename}_{ocrFilename}_{timestamp}.jpg");
+            string carrierPath = Path.Combine(basePath, carrierFilename);
+            carrierPath.EnsureDirExistence();
 
+            var carrierSaveFile = Path.Combine(carrierPath, $"{carrierFilename}.jpg");
+            var ocrFileSavePath = Path.Combine(carrierPath, $"{ocrFilename}_{ocrResult}.jpg");
+
+            if (carrierSnapshot.Width != 0)
+            {
+                carrierSnapshot.SaveImage(carrierSaveFile);
+            }
+            
             ocrSnapshot.SaveImage(ocrFileSavePath);
 
             return ocrFileSavePath;

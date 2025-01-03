@@ -101,10 +101,19 @@ public class VideoLoader : IVideoLoader
             }
             #endregion
 
+            /*if (_index >= _capture.FrameCount)
+            {
+                _cancellationTokenSource?.Cancel();
+                _isInPlaying = false;
+                break;
+            }*/
+
             if (!_capture.Grab())
             {
                 if (_index >= _capture.FrameCount)
                 {
+                    _cancellationTokenSource?.Cancel();
+                    _isInPlaying = false;
                     break;
                 }
                 
