@@ -86,8 +86,8 @@
       "Parameters": [],
       "Preferences": {
         "TypeToOCR": "sign",
-        "CarrierType": "ship",
-        "ScoreThresh": "0.6"
+        "CarrierType": "boat",
+        "ScoreThresh": "0.75"
       }
     }
   ],

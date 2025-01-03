@@ -62,7 +62,7 @@ namespace SnapshotManager.InMemory
                     continue;
                 }
 
-                Mat snapshot = TakeSnapshot(frame, detectedObject.Bbox);
+                Mat snapshot = TakeSnapshot(frame, detectedObject.Bbox.Expand(0.2f));
                 detectedObject.Snapshot = snapshot;
                 AddSnapshotOfObjectById(detectedObject.Id, CalculateFactor(detectedObject), snapshot);
             }
@@ -70,7 +70,45 @@ namespace SnapshotManager.InMemory
 
         public Mat TakeSnapshot(Frame frame, BoundingBox bboxs)
         {
-            return frame.Scene.SubMat(new Rect(bboxs.X, bboxs.Y, bboxs.Width, bboxs.Height)).Clone();
+            //return frame.Scene.SubMat(new Rect(bboxs.X, bboxs.Y, bboxs.Width, bboxs.Height)).Clone();
+
+            // 获取当前图像的宽高
+            int sceneWidth = frame.Scene.Width;
+            int sceneHeight = frame.Scene.Height;
+
+            // 原始Rect
+            int x = bboxs.X;
+            int y = bboxs.Y;
+            int width = bboxs.Width;
+            int height = bboxs.Height;
+
+            // 确保X、Y至少从0开始
+            x = Math.Max(0, x);
+            y = Math.Max(0, y);
+
+            // 如果 X+width 超过图像右边，则进行裁剪
+            if (x + width > sceneWidth)
+            {
+                width = sceneWidth - x;
+            }
+            // 如果 Y+height 超过图像下边，则进行裁剪
+            if (y + height > sceneHeight)
+            {
+                height = sceneHeight - y;
+            }
+
+            // 保险措施：如果裁剪后 width 或 height <= 0，则直接返回空
+            if (width <= 0 || height <= 0)
+            {
+                // 这里可根据业务需求返回null或者一张空的Mat
+                return new Mat();
+            }
+
+            // 构造新的Rect，保证它在图像内部
+            Rect validRect = new Rect(x, y, width, height);
+
+            // 使用有效Rect进行 SubMat 操作，最后 Clone 一份并返回
+            return frame.Scene.SubMat(validRect).Clone();
         }
 
         public void AddSnapshotOfObjectById(string objId, float score, Mat snapshot)
