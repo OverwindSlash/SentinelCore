@@ -18,7 +18,7 @@ namespace Handler.Ocr.Algorithms
     public class PaddleSharpOcrAlg : ObjectExpiredSubscriber, IAnalysisHandler
     {
         private readonly AnalysisPipeline _pipeline;
-
+        private readonly string _eventName;
         private IPublisher<OcrResultEvent> _eventPublisher;
 
         private readonly string _ocrType;
@@ -43,6 +43,7 @@ namespace Handler.Ocr.Algorithms
         {
             _pipeline = pipeline;
 
+            _eventName = preferences["EventName"];
             _ocrType = preferences["TypeToOCR"].ToLower();
             _carrierType = preferences["CarrierType"].ToLower(); 
             _scoreThresh = float.Parse(preferences["ScoreThresh"]);

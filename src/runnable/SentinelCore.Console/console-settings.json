@@ -2,7 +2,7 @@
   "Pipeline": {
     "DeviceName": "CameraId001",
     //"Uri": "rtsp://admin:CS%40202304@192.168.1.151:554/Streaming/Channels/101?transportmode=unicast&profile=Profile_1",
-    "Uri": "D:\\Video\\Ship\\05.mp4",
+    "Uri": "D:\\Video\\Smuggling\\04.mp4",
     "FrameLifetime": 200,
     "EnableDebugDisplay": true
   },
@@ -16,12 +16,22 @@
     ],
     "VideoStride": 2
   },
+  //"Detector": {
+  //  "AssemblyFile": "Detector.YoloV11Onnx.dll",
+  //  "FullQualifiedClassName": "Detector.YoloV11Onnx.YoloOnnxDetector",
+  //  "Parameters": [],
+  //  "ModelPath": "Models\\boatplate.onnx",
+  //  "ModelConfig": "Models\\boatplate.json",
+  //  "UseCuda": true,
+  //  "GpuId": 0,
+  //  "Thresh": 0.5
+  //},
   "Detector": {
-    "AssemblyFile": "Detector.YoloV11Onnx.dll",
-    "FullQualifiedClassName": "Detector.YoloV11Onnx.YoloOnnxDetector",
+    "AssemblyFile": "Detector.YoloV5Onnx.dll",
+    "FullQualifiedClassName": "Detector.YoloV5Onnx.YoloOnnxDetector",
     "Parameters": [],
-    "ModelPath": "Models\\boatplate.onnx",
-    "ModelConfig": "Models\\boatplate.json",
+    "ModelPath": "Models\\yolov5m.onnx",
+    "ModelConfig": "Models\\yolov5.json",
     "UseCuda": true,
     "GpuId": 0,
     "Thresh": 0.5
@@ -80,14 +90,26 @@
     //    "SuppressionSeconds": 2
     //  }
     //},
+    //{
+    //  "AssemblyFile": "Handler.Ocr.dll",
+    //  "FullQualifiedClassName": "Handler.Ocr.Algorithms.PaddleSharpOcrAlg",
+    //  "Parameters": [],
+    //  "Preferences": {
+    //    "EventName": "船牌识别",
+    //    "TypeToOCR": "sign",
+    //    "CarrierType": "ship",
+    //    "ScoreThresh": "0.75"
+    //  }
+    //},
     {
-      "AssemblyFile": "Handler.Ocr.dll",
-      "FullQualifiedClassName": "Handler.Ocr.Algorithms.PaddleSharpOcrAlg",
+      "AssemblyFile": "Handler.ObjectDensity.dll",
+      "FullQualifiedClassName": "Handler.ObjectDensity.Algorithms.ObjectDensityAlg",
       "Parameters": [],
       "Preferences": {
-        "TypeToOCR": "sign",
-        "CarrierType": "ship",
-        "ScoreThresh": "0.75"
+        "EventName": "人员聚集",
+        "ObjectType": "person",
+        "CountingRegion": "",
+        "MaxCount": "5"
       }
     }
   ],

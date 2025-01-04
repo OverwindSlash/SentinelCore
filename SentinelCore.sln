@@ -83,6 +83,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Storage", "Storage", "{CF5F
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Storage.LocalFileSystem", "src\dependency\Storage.LocalFileSystem\Storage.LocalFileSystem.csproj", "{6C720273-1F3A-4A3E-8516-2E4E276E73A5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Handler.ObjectDensity", "src\handler\Handler.ObjectDensity\Handler.ObjectDensity.csproj", "{10499311-5B75-461B-A25D-F07449EBC2BA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -169,6 +171,10 @@ Global
 		{6C720273-1F3A-4A3E-8516-2E4E276E73A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6C720273-1F3A-4A3E-8516-2E4E276E73A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6C720273-1F3A-4A3E-8516-2E4E276E73A5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{10499311-5B75-461B-A25D-F07449EBC2BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{10499311-5B75-461B-A25D-F07449EBC2BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{10499311-5B75-461B-A25D-F07449EBC2BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{10499311-5B75-461B-A25D-F07449EBC2BA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -212,6 +218,7 @@ Global
 		{63780A71-5240-447F-8AD9-5DFFEE9235DA} = {C9484707-BAFA-4449-BC7A-FE2B0A66FCE9}
 		{CF5FB705-B6D2-48DE-9D2C-A4D8D8435D3A} = {E5C4B30B-7DD1-4E89-A963-F884E06320D8}
 		{6C720273-1F3A-4A3E-8516-2E4E276E73A5} = {CF5FB705-B6D2-48DE-9D2C-A4D8D8435D3A}
+		{10499311-5B75-461B-A25D-F07449EBC2BA} = {C9484707-BAFA-4449-BC7A-FE2B0A66FCE9}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9572C7DE-17AC-40C7-A46E-C2E48064E3F9}
