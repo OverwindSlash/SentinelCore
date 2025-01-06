@@ -7,5 +7,6 @@
         public bool UseCuda { get; set; }
         public int GpuId { get; set; }
         public float Thresh { get; set; }
+        public string TargetTypes { get; set; }
     }
 }

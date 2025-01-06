@@ -87,7 +87,7 @@ namespace SentinelCore.Domain.Entities.ObjectDetection
             FrameId = frameId;
             TimeStamp = timeStamp;
             Bbox = bbox;
-            IsUnderAnalysis  = true;
+            IsUnderAnalysis  = false;
             Snapshot = new Mat();
         }
 

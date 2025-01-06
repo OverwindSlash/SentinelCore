@@ -12,6 +12,8 @@ namespace SentinelCore.Domain.Entities.VideoStream
         public Mat Scene { get; }
         public List<DetectedObject> DetectedObjects { get; }
 
+        private Dictionary<string, object> _customizeProperties = new();
+
         public Frame(string deviceId, long frameId, long offsetMilliSec, Mat scene)
         {
             DeviceId = deviceId;
@@ -35,6 +37,28 @@ namespace SentinelCore.Domain.Entities.VideoStream
 
                 DetectedObjects.Add(detectedObject);
             }
+        }
+
+        public void SetProperty(string key, object value)
+        {
+            if (!_customizeProperties.ContainsKey(key))
+            {
+                _customizeProperties.Add(key, value);
+            }
+            else
+            {
+                _customizeProperties[key] = value;
+            }
+        }
+
+        public object GetProperty(string key)
+        {
+            if (_customizeProperties.ContainsKey(key))
+            {
+                return _customizeProperties[key];
+            }
+
+            return null;
         }
 
         public void Dispose()

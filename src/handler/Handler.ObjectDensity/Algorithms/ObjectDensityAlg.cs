@@ -108,11 +108,19 @@ namespace Handler.ObjectDensity.Algorithms
                     continue;
                 }
 
-                if (counting++ > _maxCount)
+                if (counting > _maxCount)
                 {
-                    Console.WriteLine($"{detectedObject.Label} number: {counting} exceed max thresh: {_maxCount}.");
+                    Console.WriteLine($"WARNING: {detectedObject.Label} number: {counting} in detection region, exceed max thresh: {_maxCount}.");
                 }
+                else
+                {
+                    Console.WriteLine($"INFO: {detectedObject.Label} number: {counting} in detection region");
+                }
+
+                counting++;
             }
+
+            frame.SetProperty("counting", counting - 1);
 
             return new AnalysisResult(true);
         }

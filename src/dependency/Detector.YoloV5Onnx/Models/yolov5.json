@@ -63,7 +63,7 @@
   "Channels": 3,
   "BatchSize": 1,
   "Outputs": [
-    "output"
+    "output0"
   ],
   "Input": "images",
   "Names": [

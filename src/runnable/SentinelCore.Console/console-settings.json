@@ -2,7 +2,7 @@
   "Pipeline": {
     "DeviceName": "CameraId001",
     //"Uri": "rtsp://admin:CS%40202304@192.168.1.151:554/Streaming/Channels/101?transportmode=unicast&profile=Profile_1",
-    "Uri": "D:\\Video\\Smuggling\\04.mp4",
+    "Uri": "D:\\Video\\Pedestrain\\MOT20-03-raw.webm",
     "FrameLifetime": 200,
     "EnableDebugDisplay": true
   },
@@ -29,12 +29,13 @@
   "Detector": {
     "AssemblyFile": "Detector.YoloV5Onnx.dll",
     "FullQualifiedClassName": "Detector.YoloV5Onnx.YoloOnnxDetector",
-    "Parameters": [],
-    "ModelPath": "Models\\yolov5m.onnx",
+    "ModelPath": "Models\\yolov5x.onnx",
     "ModelConfig": "Models\\yolov5.json",
     "UseCuda": true,
     "GpuId": 0,
-    "Thresh": 0.5
+    "Thresh": 0.05,
+    "TargetTypes": "person",
+    "Parameters": []
   },
   "Tracker": {
     "AssemblyFile": "Tracker.Sort.dll",
@@ -49,7 +50,8 @@
     "FullQualifiedClassName": "RegionManager.DefinitionBased.RegionManager",
     "Parameters": [
       //"default-region.json",
-      "osd-exclusive-region.json"
+      //"osd-exclusive-region.json",
+      "mot-demo.json"
     ]
   },
   "Snapshot": {
@@ -109,7 +111,7 @@
         "EventName": "人员聚集",
         "ObjectType": "person",
         "CountingRegion": "",
-        "MaxCount": "5"
+        "MaxCount": "10"
       }
     }
   ],

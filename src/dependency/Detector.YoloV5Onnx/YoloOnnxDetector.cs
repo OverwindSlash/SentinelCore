@@ -10,8 +10,9 @@ namespace Detector.YoloV5Onnx
     public class YoloOnnxDetector : IObjectDetector
     {
         private YoloPredictor _predictor;
+        private List<string> _targetTypes = new();
         private List<string> _names = new();
-
+        
         public void PrepareEnv(Dictionary<string, string>? envParam = null)
         {
 
@@ -44,6 +45,21 @@ namespace Detector.YoloV5Onnx
                 }
             }
 
+            if (!initParam.TryGetValue("target_types", out var targetTypes))
+            {
+                throw new ArgumentException("initParam does not contain model_path element.");
+            }
+
+            string[] types = targetTypes.Split(',');
+            if (types.Length != 0)
+            {
+                _targetTypes.AddRange(types);
+            }
+            else
+            {
+                _targetTypes = null;
+            }
+
             _predictor = new YoloPredictor(File.ReadAllBytes(modelPath), modelConfig, option);
 
             var predictorMetadata = _predictor.Metadata.CustomMetadataMap;
@@ -68,7 +84,9 @@ namespace Detector.YoloV5Onnx
 
         public List<BoundingBox> Detect(Mat image, float thresh = 0.5f)
         {
-            YoloPrediction[] detectedObjects = _predictor.Predict(image.ToBitmap(), thresh).ToArray();
+            Mat adjusted = new Mat();
+            image.ConvertTo(adjusted, -1, 2.0, 80);
+            YoloPrediction[] detectedObjects = _predictor.Predict(adjusted.ToBitmap(), thresh, _targetTypes).ToArray();
             //YoloPrediction[] detectedObjects = _predictor.Predict(image, thresh).ToArray();
 
             return GenerateBoundingBoxes(detectedObjects);
@@ -103,7 +121,7 @@ namespace Detector.YoloV5Onnx
 
             Bitmap bitmap = new Bitmap(stream);
 
-            YoloPrediction[] detectedObjects = _predictor.Predict(bitmap, thresh).ToArray();
+            YoloPrediction[] detectedObjects = _predictor.Predict(bitmap, thresh, _targetTypes).ToArray();
 
             return GenerateBoundingBoxes(detectedObjects);
         }
@@ -112,7 +130,7 @@ namespace Detector.YoloV5Onnx
         {
             Bitmap bitmap = new Bitmap(imageFile);
 
-            YoloPrediction[] detectedObjects = _predictor.Predict(bitmap, thresh).ToArray();
+            YoloPrediction[] detectedObjects = _predictor.Predict(bitmap, thresh, _targetTypes).ToArray();
 
             return GenerateBoundingBoxes(detectedObjects);
         }

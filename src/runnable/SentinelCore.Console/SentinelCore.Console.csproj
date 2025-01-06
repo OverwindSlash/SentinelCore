@@ -28,6 +28,9 @@
     <None Update="console-settings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="mot-demo.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="default-region.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
