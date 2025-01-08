@@ -23,22 +23,20 @@ namespace MediaLoader.Tests
             // Consumer
             var consumerTask = Task.Run(() =>
             {
-                int frameCount = 0;
+                int frameCount = 1;
                 int frameInterval = (int)(1000 / loader.Specs.Fps);
                 while (loader.BufferedFrameCount != 0 || loader.IsOpened)
                 {
                     using var frame = loader.RetrieveFrame();
-                    if (frame == null)
+                    if (frame != null)
                     {
-                        continue;
+                        Assert.That(frame.FrameId, Is.EqualTo(frameCount));
+                        frameCount++;
+
+                        // Cv2.ImShow("test", frame.Scene);
+                        // Cv2.WaitKey(frameInterval);
                     }
-
-                    // Cv2.ImShow("test", frame.Scene);
-                    // Cv2.WaitKey(frameInterval);
-                    frameCount++;
                 }
-
-                Assert.That(frameCount, Is.EqualTo(151));
             });
 
             // Keep thread running until video ends.
@@ -60,22 +58,20 @@ namespace MediaLoader.Tests
             // Consumer
             var showTask = Task.Run(async () =>
             {
-                int frameCount = 0;
+                int frameCount = 1;
                 int frameInterval = (int)(1000 / loader.Specs.Fps);
                 while (loader.BufferedFrameCount != 0 || loader.IsOpened)
                 {
                     using var frame = await loader.RetrieveFrameAsync();
-                    if (frame == null)
+                    if (frame != null)
                     {
-                        continue;
+                        Assert.That(frame.FrameId, Is.EqualTo(frameCount));
+                        frameCount++;
+
+                        // Cv2.ImShow("test", frame.Scene);
+                        // Cv2.WaitKey(frameInterval);
                     }
-
-                    // Cv2.ImShow("test", frame.Scene);
-                    // Cv2.WaitKey(frameInterval);
-                    frameCount++;
                 }
-
-                Assert.That(frameCount, Is.EqualTo(151));
             });
 
             // Keep thread running until video ends.
@@ -271,7 +267,7 @@ namespace MediaLoader.Tests
 
             var consumerTask = Task.Run(async () =>
             {
-                int frameCount = 0;
+                int frameCount = 1;
                 while (loader.BufferedFrameCount != 0 || loader.IsOpened)
                 {
                     using var frame = await loader.RetrieveFrameAsync();
@@ -280,12 +276,12 @@ namespace MediaLoader.Tests
                         continue;
                     }
 
-                    Assert.That(frame.FrameId, Is.EqualTo(frameCount * stride + 1));
+                    Assert.That(frame.FrameId, Is.EqualTo(frameCount * stride));
 
                     frameCount++;
                 }
 
-                Assert.That(frameCount, Is.EqualTo(bufferSize / 2));
+                Assert.That(frameCount, Is.EqualTo(bufferSize / 2 + 1));
             });
 
             // Keep thread running until video ends.

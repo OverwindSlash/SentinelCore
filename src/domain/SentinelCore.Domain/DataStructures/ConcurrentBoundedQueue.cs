@@ -83,7 +83,7 @@ public class ConcurrentBoundedQueue<T> : IEnumerable<T>, IConcurrentBoundedQueue
                 return item;
             }
 
-            Task.Delay(CleanupInProcessWaitMs).Wait(); // Empty queue, wait for data
+            //Task.Delay(CleanupInProcessWaitMs).Wait(); // Empty queue, wait for data
         }
 
         return default;

@@ -20,7 +20,7 @@ public class VideoLoader : IVideoLoader
 
     private string _uri;
     private volatile bool _isInPlaying;
-    private long _index;
+    private long _index = 1;
 
     private CancellationTokenSource _cancellationTokenSource;
 
@@ -78,7 +78,7 @@ public class VideoLoader : IVideoLoader
     {
         _frameBuffer.Clear();
         _isInPlaying = false;
-        _index = 0;
+        _index = 1;
     }
 
     public void Close()
@@ -115,7 +115,7 @@ public class VideoLoader : IVideoLoader
             if (!_capture.Grab())
             {
                 // End of video file.
-                if (_capture.FrameCount > 0 && _index >= _capture.FrameCount)
+                if (_capture.FrameCount > 0 && _index > _capture.FrameCount)
                 {
                     Stop();
                     break;

@@ -1,16 +1,16 @@
 {
   "Pipeline": {
     "DeviceName": "CameraId001",
-    //"Uri": "rtsp://admin:CS%40202304@192.168.1.151:554/Streaming/Channels/101?transportmode=unicast&profile=Profile_1",
-    "Uri": "D:\\Video\\Pedestrain\\MOT20-03-raw.mp4",
+    "Uri": "rtsp://admin:CS%40202304@192.168.1.151:554/Streaming/Channels/101?transportmode=unicast&profile=Profile_1",
+    //"Uri": "D:\\Video\\Pedestrain\\MOT20-03-raw.mp4",
     "FrameLifetime": 200,
     "EnableDebugDisplay": true
   },
   "MediaLoader": {
-    //"AssemblyFile": "MediaLoader.FFMpeg.dll",
-    //"FullQualifiedClassName": "MediaLoader.FFMpeg.VideoLoader",
-    "AssemblyFile": "MediaLoader.OpenCV.dll",
-    "FullQualifiedClassName": "MediaLoader.OpenCV.VideoLoader",
+    "AssemblyFile": "MediaLoader.FFMpeg.dll",
+    "FullQualifiedClassName": "MediaLoader.FFMpeg.VideoLoader",
+    //"AssemblyFile": "MediaLoader.OpenCV.dll",
+    //"FullQualifiedClassName": "MediaLoader.OpenCV.VideoLoader",
     "BufferSize": 300,
     "VideoStride": 2,
     "Parameters": []
