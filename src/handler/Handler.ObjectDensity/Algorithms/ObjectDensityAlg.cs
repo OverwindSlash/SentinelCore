@@ -3,6 +3,7 @@ using SentinelCore.Domain.Entities.AnalysisDefinitions.Geometrics;
 using SentinelCore.Domain.Entities.AnalysisEngine;
 using SentinelCore.Domain.Entities.VideoStream;
 using SentinelCore.Service.Pipeline;
+using Serilog;
 
 namespace Handler.ObjectDensity.Algorithms
 {
@@ -108,14 +109,14 @@ namespace Handler.ObjectDensity.Algorithms
                     continue;
                 }
 
-                // if (counting > _maxCount)
-                // {
-                //     Console.WriteLine($"WARNING: {detectedObject.Label} number: {counting} in detection region, exceed max thresh: {_maxCount}.");
-                // }
-                // else
-                // {
-                //     Console.WriteLine($"INFO: {detectedObject.Label} number: {counting} in detection region");
-                // }
+                if (counting > _maxCount)
+                {
+                    Log.Warning($"{detectedObject.Label} number: {counting} in detection region, exceed max thresh: {_maxCount}.");
+                }
+                else
+                {
+                    //Console.WriteLine($"INFO: {detectedObject.Label} number: {counting} in detection region");
+                }
 
                 counting++;
             }

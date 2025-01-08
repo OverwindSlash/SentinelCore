@@ -74,14 +74,27 @@ namespace MediaLoader.FFMpeg
         {
             Close();
 
-            /*AVDictionary* options = null;
-
-            // 设置读取缓冲区为 4MB
-            ffmpeg.av_dict_set(&options, "buffer_size", "4194304", 0);
-
-            // 降低分析时间为 1 秒，减少打开文件的延迟
-            ffmpeg.av_dict_set(&options, "analyzeduration", "1000000", 0);
-            ffmpeg.av_dict_set(&options, "probesize", "1000000", 0);*/
+            // AVDictionary* options = null;
+            //
+            // // 设置传输协议为 TCP
+            // ffmpeg.av_dict_set(&options, "rtsp_transport", "tcp", 0);
+            //
+            // // 设置最大延迟为 0.5 秒（500000 微秒）
+            // ffmpeg.av_dict_set(&options, "max_delay", "500000", 0);
+            //
+            // // 设置缓冲区大小为 4MB
+            // ffmpeg.av_dict_set(&options, "buffer_size", "4194304", 0);
+            //
+            // // 设置分析时长为 1 秒，减少打开文件的延迟
+            // ffmpeg.av_dict_set(&options, "analyzeduration", "1000000", 0);
+            // ffmpeg.av_dict_set(&options, "probesize", "1000000", 0);
+            //
+            // // 启用自动重连
+            // ffmpeg.av_dict_set(&options, "reconnect", "1", 0);
+            //
+            // // 设置重连尝试次数
+            // ffmpeg.av_dict_set(&options, "reconnect_streamed", "1", 0);
+            // ffmpeg.av_dict_set(&options, "reconnect_delay_max", "10", 0); // 最长重连延迟 10 秒
 
             // Open video file or stream
             _formatContext = ffmpeg.avformat_alloc_context();
@@ -95,7 +108,7 @@ namespace MediaLoader.FFMpeg
                 }
             }
 
-            //ffmpeg.av_dict_free(&options);
+            // ffmpeg.av_dict_free(&options);
 
             // Retrieve stream information
             if (ffmpeg.avformat_find_stream_info(_formatContext, null) < 0)
@@ -187,33 +200,6 @@ namespace MediaLoader.FFMpeg
         {
             _cancellationTokenSource?.Cancel();
             _isOpened = false;
-
-            ffmpeg.sws_freeContext(_swsContext);
-
-            fixed (AVCodecContext** pCodecContext = &_codecContext)
-            {
-                ffmpeg.avcodec_free_context(pCodecContext);
-            }
-            
-            fixed (AVFrame** pFrame = &_frame)
-            {
-                ffmpeg.av_frame_free(pFrame);
-            }
-
-            fixed (AVPacket** pPacket = &_packet)
-            {
-                ffmpeg.av_packet_free(pPacket);
-            }
-
-            fixed (AVCodecContext** pCodecContext = &_codecContext)
-            {
-                ffmpeg.avcodec_free_context(pCodecContext);
-            }
-
-            fixed (AVFormatContext** pFormatContext = &_formatContext)
-            {
-                ffmpeg.avformat_close_input(pFormatContext);
-            }
         }
         
         public void Play(int stride = 1, bool debugMode = false, int debugFrameCount = 0)
@@ -387,12 +373,36 @@ namespace MediaLoader.FFMpeg
             if (disposing)
             {
                 // 释放托管资源
-                _cancellationTokenSource?.Cancel();
-                _cancellationTokenSource?.Dispose();
+                 Close();
             }
 
             // 释放非托管资源
-            Close();
+            ffmpeg.sws_freeContext(_swsContext);
+
+            fixed (AVCodecContext** pCodecContext = &_codecContext)
+            {
+                ffmpeg.avcodec_free_context(pCodecContext);
+            }
+
+            fixed (AVFrame** pFrame = &_frame)
+            {
+                ffmpeg.av_frame_free(pFrame);
+            }
+
+            fixed (AVPacket** pPacket = &_packet)
+            {
+                ffmpeg.av_packet_free(pPacket);
+            }
+
+            fixed (AVCodecContext** pCodecContext = &_codecContext)
+            {
+                ffmpeg.avcodec_free_context(pCodecContext);
+            }
+
+            fixed (AVFormatContext** pFormatContext = &_formatContext)
+            {
+                ffmpeg.avformat_close_input(pFormatContext);
+            }
 
             _disposed = true;
         }

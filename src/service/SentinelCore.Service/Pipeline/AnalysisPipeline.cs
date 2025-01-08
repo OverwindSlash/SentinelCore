@@ -192,9 +192,7 @@ namespace SentinelCore.Service.Pipeline
 
         private void InitializeComponents()
         {
-            _videoLoader = _provider.GetService<IVideoLoader>();
-            _videoLoader.Open(_pipeLineSettings.Uri);
-
+            // 耗时组件优先初始化，以防止视频解码被延迟导致错误.
             _objectDetector = _provider.GetService<IObjectDetector>();
             _objectDetector.Init(new Dictionary<string, string>() {
                 {"model_path", _detectorSettings.ModelPath},
@@ -203,6 +201,9 @@ namespace SentinelCore.Service.Pipeline
                 {"gpu_id", _detectorSettings.GpuId.ToString()},
                 {"target_types", _detectorSettings.TargetTypes}
             });
+
+            _videoLoader = _provider.GetService<IVideoLoader>();
+            _videoLoader.Open(_pipeLineSettings.Uri);
 
             _regionManager = _provider.GetService<IRegionManager>();
             
@@ -361,12 +362,12 @@ namespace SentinelCore.Service.Pipeline
                     if (counting < 10)
                     {
                         DrawRegion(analysisArea, analyzedFrame.Scene, Scalar.Lime);
-                        Cv2.PutText(analyzedFrame.Scene, counting.ToString(), new Point(areaPoint.OriginalX - 10, areaPoint.OriginalY - 10), HersheyFonts.HersheyPlain, 1.0, Scalar.Lime);
+                        Cv2.PutText(analyzedFrame.Scene, counting.ToString(), new Point(areaPoint.OriginalX - 20, areaPoint.OriginalY - 10), HersheyFonts.HersheyPlain, 1.5, Scalar.Lime);
                     }
                     else
                     {
                         DrawRegion(analysisArea, analyzedFrame.Scene, Scalar.Crimson);
-                        Cv2.PutText(analyzedFrame.Scene, counting.ToString(), new Point(areaPoint.OriginalX - 10, areaPoint.OriginalY - 10), HersheyFonts.HersheyPlain, 1.0, Scalar.Crimson);
+                        Cv2.PutText(analyzedFrame.Scene, counting.ToString(), new Point(areaPoint.OriginalX - 20, areaPoint.OriginalY - 10), HersheyFonts.HersheyPlain, 1.5, Scalar.Crimson);
                     }
                 }
             }

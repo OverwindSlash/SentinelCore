@@ -106,7 +106,6 @@ public class VideoLoader : IVideoLoader
     private void CleanUpCapture()
     {
         _capture.Release();
-        _capture.Dispose();
     }
 
     public void Play(int stride = 1, bool debugMode = false, int debugFrameCount = 0)
@@ -246,7 +245,6 @@ public class VideoLoader : IVideoLoader
         {
             Close();
             _capture?.Dispose();
-            _cancellationTokenSource?.Dispose();
         }
 
         _disposed = true;
