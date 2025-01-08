@@ -20,7 +20,9 @@ namespace Detector.Tests
             {
                 {"model_path", ModelPath},
                 {"model_config", ModelConfig},
-                {"use_cuda", "true"}
+                {"use_cuda", "true"},
+                {"gpu_id", "0"},
+                {"target_types", ""}
             });
 
             // // Avoid first time-consuming call in test cases.

@@ -10,70 +10,82 @@ namespace MediaLoader.OpenCV;
 public class VideoLoader : IVideoLoader
 {
     private readonly string _deviceId;
-    private VideoCapture _capture;
-    private VideoSpecs _videoSpecs;
-    private VideoCapturePara _videoCapturePara;
-    private readonly IConcurrentBoundedQueue<Frame> _frameBuffer;
-    private string _uri;
 
+    private VideoCapture _capture;
+    private readonly VideoCaptureAPIs _videoCaptureApIs;
+    private readonly VideoCapturePara _videoCapturePara;
+    private VideoSpecs _videoSpecs;
+    
+    private readonly IConcurrentBoundedQueue<Frame> _frameBuffer;
+
+    private string _uri;
     private volatile bool _isInPlaying;
     private long _index;
 
-    private readonly VideoCaptureAPIs _videoCaptureApIs;
-
     private CancellationTokenSource _cancellationTokenSource;
 
-    public VideoLoader()
-        : this("tempId", 100)
-    { }
-
-    public VideoLoader(string deviceId, int bufferSize)
-    {
-        _deviceId = deviceId;
-        _capture = new VideoCapture();
-        _videoCapturePara = new VideoCapturePara(VideoAccelerationType.Any, 0);
-        _videoSpecs = new VideoSpecs(string.Empty, 0, 0, 0, 0);
-        _frameBuffer = new ConcurrentBoundedQueue<Frame>(bufferSize);
-        _isInPlaying = false;
-        _index = 0;
-
-        _videoCaptureApIs = VideoCaptureAPIs.FFMPEG;
-    }
-
     public string DeviceId => _deviceId;
+    public VideoSpecs Specs => _videoSpecs;
     public int Width => _videoSpecs.Width;
     public int Height => _videoSpecs.Height;
     public bool IsOpened => _capture.IsOpened();
     public bool IsInPlaying => _isInPlaying;
-    public VideoSpecs Specs => _videoSpecs;
-    public int BufferedFrameCount => _frameBuffer.Count;       
+
+    public int BufferedFrameCount => _frameBuffer.Count;
     public int BufferedMaxOccupied => _frameBuffer.MaxOccupied;
+
+    public VideoLoader()
+        : this("tempCameraId", 300)
+    { }
+
+    public VideoLoader(string deviceId, int bufferSize)
+    {
+        Log.Information($"Initialize OpenCV video capture...");
+
+        _deviceId = deviceId;
+
+        _capture = new VideoCapture();
+        _videoCaptureApIs = VideoCaptureAPIs.FFMPEG;
+        _videoCapturePara = new VideoCapturePara(VideoAccelerationType.D3D11, 0);
+        _videoSpecs = new VideoSpecs(string.Empty, 0, 0, 0, 0);
+
+        Log.Information($"OpenCV video capture using capture api: {nameof(VideoCaptureAPIs.FFMPEG)} " +
+                        $"acceleration type: {nameof(VideoAccelerationType.D3D11)}.");
+
+        _frameBuffer = new ConcurrentBoundedQueue<Frame>(bufferSize);
+    }
 
     public void Open(string uri)
     {
         Close();
 
-        _capture = new VideoCapture(uri, _videoCaptureApIs);
+        _capture = new VideoCapture(uri, _videoCaptureApIs, _videoCapturePara);
         if (!_capture.IsOpened())
         {
-            throw new ApplicationException($"Stream source '{uri}' not available.");
+            string message = $"Stream source '{uri}' can not be opened.";
+            Log.Error(message);
+            throw new ApplicationException(message);
         }
 
-        _videoSpecs = new VideoSpecs(uri, _capture.FrameWidth, _capture.FrameHeight,
+        _uri = uri;
+        _videoSpecs = new VideoSpecs(_uri, _capture.FrameWidth, _capture.FrameHeight,
             _capture.Fps, _capture.FrameCount);
 
+        ResetPlayStatus();
+    }
+
+    private void ResetPlayStatus()
+    {
         _frameBuffer.Clear();
         _isInPlaying = false;
         _index = 0;
-        _uri = uri;
     }
 
     public void Close()
     {
         _cancellationTokenSource?.Cancel();
-        _isInPlaying = false;
 
-        if (_capture != null && _capture.IsOpened())
+        if (_capture.IsOpened())
         {
             _capture.Release();
         }
@@ -83,15 +95,14 @@ public class VideoLoader : IVideoLoader
     {
         if (!_capture.IsOpened())
         {
-            throw new ApplicationException($"Stream source not opened.");
+            throw new ApplicationException($"Stream source not opened yet.");
         }
 
-        _isInPlaying = true;
         _cancellationTokenSource = new CancellationTokenSource();
         var token = _cancellationTokenSource.Token;
+        _isInPlaying = true;
 
         var stopwatch = Stopwatch.StartNew();
-
         while (_isInPlaying && !token.IsCancellationRequested)
         {
             #region retrive specified amount of frame for debug
@@ -101,26 +112,20 @@ public class VideoLoader : IVideoLoader
             }
             #endregion
 
-            /*if (_index >= _capture.FrameCount)
-            {
-                _cancellationTokenSource?.Cancel();
-                _isInPlaying = false;
-                break;
-            }*/
-
             if (!_capture.Grab())
             {
-                if (_index >= _capture.FrameCount)
+                // End of video file.
+                if (_capture.FrameCount > 0 && _index >= _capture.FrameCount)
                 {
-                    _cancellationTokenSource?.Cancel();
-                    _isInPlaying = false;
+                    Stop();
                     break;
                 }
-                
-                // Reconnect
+
+                // Reconnect video streaming.
+                Log.Warning("Video source grab failed. Skip this frame.");
                 _capture.Release();
-                _capture = new VideoCapture(_uri, _videoCaptureApIs);
-                continue;
+                _capture = new VideoCapture(_uri, _videoCaptureApIs, _videoCapturePara);
+                continue;   // re-grab
             }
 
             if (_index++ % stride != 0)
@@ -131,11 +136,13 @@ public class VideoLoader : IVideoLoader
             var image = new Mat();
             if (!_capture.Retrieve(image))
             {
+                Log.Warning("Retrieve image failed. Skip this frame.");
                 continue;
             }
 
             if (image.Width == 0 || image.Height == 0)
             {
+                Log.Warning("Image invalid. Skip this frame.");
                 continue;
             }
 
@@ -165,11 +172,11 @@ public class VideoLoader : IVideoLoader
     {
         if (!_capture.IsOpened())
         {
-            throw new ApplicationException($"Stream source not opened.");
+            return;
         }
 
         _cancellationTokenSource?.Cancel();
-        _isInPlaying = false;
+        ResetPlayStatus();
     }
 
     public Frame RetrieveFrame()

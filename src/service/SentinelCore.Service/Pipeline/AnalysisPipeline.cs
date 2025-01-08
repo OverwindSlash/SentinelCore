@@ -87,7 +87,7 @@ namespace SentinelCore.Service.Pipeline
 
             var mediaLoader = CreateInstance<IVideoLoader>(
                 _mediaLoaderSettings.AssemblyFile, _mediaLoaderSettings.FullQualifiedClassName,
-                new object?[] { _pipeLineSettings.DeviceName, int.Parse(_mediaLoaderSettings.Parameters[0]) });
+                new object?[] { _pipeLineSettings.DeviceName, _mediaLoaderSettings.BufferSize });
             _services.AddTransient<IVideoLoader>(sp => mediaLoader);
 
             var detector = CreateInstance<IObjectDetector>(

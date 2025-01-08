@@ -47,17 +47,16 @@ namespace Detector.YoloV5Onnx
 
             if (!initParam.TryGetValue("target_types", out var targetTypes))
             {
-                throw new ArgumentException("initParam does not contain model_path element.");
+                throw new ArgumentException("initParam does not contain target_types element.");
             }
 
-            string[] types = targetTypes.Split(',');
-            if (types.Length != 0)
+            if (string.IsNullOrEmpty(targetTypes))
             {
-                _targetTypes.AddRange(types);
+                _targetTypes = null;
             }
             else
             {
-                _targetTypes = null;
+                _targetTypes.AddRange(targetTypes.Split(','));
             }
 
             _predictor = new YoloPredictor(File.ReadAllBytes(modelPath), modelConfig, option);
@@ -84,9 +83,7 @@ namespace Detector.YoloV5Onnx
 
         public List<BoundingBox> Detect(Mat image, float thresh = 0.5f)
         {
-            Mat adjusted = new Mat();
-            image.ConvertTo(adjusted, -1, 2.0, 80);
-            YoloPrediction[] detectedObjects = _predictor.Predict(adjusted.ToBitmap(), thresh, _targetTypes).ToArray();
+            YoloPrediction[] detectedObjects = _predictor.Predict(image.ToBitmap(), thresh, _targetTypes).ToArray();
             //YoloPrediction[] detectedObjects = _predictor.Predict(image, thresh).ToArray();
 
             return GenerateBoundingBoxes(detectedObjects);
