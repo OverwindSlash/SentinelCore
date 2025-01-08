@@ -34,6 +34,12 @@ public class VideoLoader : IVideoLoader
     public int BufferedFrameCount => _frameBuffer.Count;
     public int BufferedMaxOccupied => _frameBuffer.MaxOccupied;
 
+    private bool _disposed = false;
+
+    private int _retryCount = 0;
+    private const int MaxRetries = 5;
+    private const int RetryDelayMs = 1000;
+
     public VideoLoader()
         : this("tempCameraId", 300)
     { }
@@ -41,6 +47,12 @@ public class VideoLoader : IVideoLoader
     public VideoLoader(string deviceId, int bufferSize)
     {
         Log.Information($"Initialize OpenCV video capture...");
+
+        if (string.IsNullOrWhiteSpace(deviceId))
+            throw new ArgumentException("Device Id cannot be null or empty.", nameof(deviceId));
+
+        if (bufferSize <= 0)
+            throw new ArgumentOutOfRangeException(nameof(bufferSize), "Buffer size must be positive.");
 
         _deviceId = deviceId;
 
@@ -87,8 +99,14 @@ public class VideoLoader : IVideoLoader
 
         if (_capture.IsOpened())
         {
-            _capture.Release();
+            CleanUpCapture();
         }
+    }
+
+    private void CleanUpCapture()
+    {
+        _capture.Release();
+        _capture.Dispose();
     }
 
     public void Play(int stride = 1, bool debugMode = false, int debugFrameCount = 0)
@@ -122,11 +140,29 @@ public class VideoLoader : IVideoLoader
                 }
 
                 // Reconnect video streaming.
-                Log.Warning("Video source grab failed. Skip this frame.");
-                _capture.Release();
-                _capture = new VideoCapture(_uri, _videoCaptureApIs, _videoCapturePara);
-                continue;   // re-grab
+                if (_retryCount++ < MaxRetries)
+                {
+                    Log.Warning($"Video source grab failed. Attempting to reconnect {_retryCount}/{MaxRetries}.");
+
+                    CleanUpCapture();
+
+                    // fast retry when error first occur.
+                    if (_retryCount != 0)
+                    {
+                        Thread.Sleep(RetryDelayMs);
+                    }
+                    _capture = new VideoCapture(_uri, _videoCaptureApIs, _videoCapturePara);
+                    continue;   // re-grab
+                }
+                else
+                {
+                    Log.Error("Maximum reconnection attempts reached. Stopping video streaming.");
+                    Stop();
+                    break;
+                }
             }
+
+            _retryCount = 0;
 
             if (_index++ % stride != 0)
             {
@@ -167,7 +203,7 @@ public class VideoLoader : IVideoLoader
 
         Close();
     }
-
+    
     public void Stop()
     {
         if (!_capture.IsOpened())
@@ -189,9 +225,35 @@ public class VideoLoader : IVideoLoader
         return await _frameBuffer.DequeueAsync();
     }
 
+    // public void Dispose()
+    // {
+    //     Close();
+    //     _capture.Dispose();
+    // }
+
     public void Dispose()
     {
-        Close();
-        _capture.Dispose();
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_disposed)
+            return;
+
+        if (disposing)
+        {
+            Close();
+            _capture?.Dispose();
+            _cancellationTokenSource?.Dispose();
+        }
+
+        _disposed = true;
+    }
+
+    ~VideoLoader()
+    {
+        Dispose(false);
     }
 }

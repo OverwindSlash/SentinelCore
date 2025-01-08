@@ -47,9 +47,17 @@ namespace MediaLoader.FFMpeg
         public long FrameCount { get; set; }
         public long FrameMilliSec { get; set; }
 
+        private bool _disposed = false;
+
         public VideoLoader(string deviceId, int bufferSize)
         {
             Log.Information($"Initialize FFMpeg video capture...");
+
+            if (string.IsNullOrWhiteSpace(deviceId))
+                throw new ArgumentException("Device Id cannot be null or empty.", nameof(deviceId));
+
+            if (bufferSize <= 0)
+                throw new ArgumentOutOfRangeException(nameof(bufferSize), "Buffer size must be positive.");
 
             _deviceId = deviceId;
 
@@ -180,9 +188,31 @@ namespace MediaLoader.FFMpeg
             _cancellationTokenSource?.Cancel();
             _isOpened = false;
 
+            ffmpeg.sws_freeContext(_swsContext);
+
             fixed (AVCodecContext** pCodecContext = &_codecContext)
             {
                 ffmpeg.avcodec_free_context(pCodecContext);
+            }
+            
+            fixed (AVFrame** pFrame = &_frame)
+            {
+                ffmpeg.av_frame_free(pFrame);
+            }
+
+            fixed (AVPacket** pPacket = &_packet)
+            {
+                ffmpeg.av_packet_free(pPacket);
+            }
+
+            fixed (AVCodecContext** pCodecContext = &_codecContext)
+            {
+                ffmpeg.avcodec_free_context(pCodecContext);
+            }
+
+            fixed (AVFormatContext** pFormatContext = &_formatContext)
+            {
+                ffmpeg.avformat_close_input(pFormatContext);
             }
         }
         
@@ -318,29 +348,58 @@ namespace MediaLoader.FFMpeg
             return _frameBuffer.DequeueAsync();
         }
 
+        // public void Dispose()
+        // {
+        //     ffmpeg.sws_freeContext(_swsContext);
+        //
+        //     fixed (AVFrame** pFrame = &_frame)
+        //     {
+        //         ffmpeg.av_frame_free(pFrame);
+        //     }
+        //
+        //     fixed (AVPacket** pPacket = &_packet)
+        //     {
+        //         ffmpeg.av_packet_free(pPacket);
+        //     }
+        //
+        //     fixed (AVCodecContext** pCodecContext = &_codecContext)
+        //     {
+        //         ffmpeg.avcodec_free_context(pCodecContext);
+        //     }
+        //
+        //     fixed (AVFormatContext** pFormatContext = &_formatContext)
+        //     {
+        //         ffmpeg.avformat_close_input(pFormatContext);
+        //     }
+        // }
+
         public void Dispose()
         {
-            ffmpeg.sws_freeContext(_swsContext);
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
 
-            fixed (AVFrame** pFrame = &_frame)
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed)
+                return;
+
+            if (disposing)
             {
-                ffmpeg.av_frame_free(pFrame);
+                // 释放托管资源
+                _cancellationTokenSource?.Cancel();
+                _cancellationTokenSource?.Dispose();
             }
 
-            fixed (AVPacket** pPacket = &_packet)
-            {
-                ffmpeg.av_packet_free(pPacket);
-            }
+            // 释放非托管资源
+            Close();
 
-            fixed (AVCodecContext** pCodecContext = &_codecContext)
-            {
-                ffmpeg.avcodec_free_context(pCodecContext);
-            }
+            _disposed = true;
+        }
 
-            fixed (AVFormatContext** pFormatContext = &_formatContext)
-            {
-                ffmpeg.avformat_close_input(pFormatContext);
-            }
+        ~VideoLoader()
+        {
+            Dispose(false);
         }
     }
 }
