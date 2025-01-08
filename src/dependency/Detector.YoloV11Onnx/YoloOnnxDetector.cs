@@ -8,6 +8,7 @@ namespace Detector.YoloV11Onnx
     public class YoloOnnxDetector : IObjectDetector
     {
         private YoloPredictor _predictor;
+        private List<string> _targetTypes = new();
         private List<string> _names = new();
 
         public void PrepareEnv(Dictionary<string, string>? envParam = null)
@@ -42,6 +43,20 @@ namespace Detector.YoloV11Onnx
                 }
             }
 
+            if (!initParam.TryGetValue("target_types", out var targetTypes))
+            {
+                throw new ArgumentException("initParam does not contain target_types element.");
+            }
+
+            if (string.IsNullOrEmpty(targetTypes))
+            {
+                _targetTypes = null;
+            }
+            else
+            {
+                _targetTypes.AddRange(targetTypes.Split(','));
+            }
+
             _predictor = new YoloPredictor(File.ReadAllBytes(modelPath), modelConfig, option);
 
             var predictorMetadata = _predictor.Metadata.CustomMetadataMap;
@@ -66,7 +81,7 @@ namespace Detector.YoloV11Onnx
 
         public List<BoundingBox> Detect(Mat image, float thresh = 0.5f)
         {
-            YoloPrediction[] detectedObjects = _predictor.Predict(image, thresh).ToArray();
+            YoloPrediction[] detectedObjects = _predictor.Predict(image, thresh, _targetTypes).ToArray();
 
             return GenerateBoundingBoxes(detectedObjects);
         }
@@ -100,7 +115,7 @@ namespace Detector.YoloV11Onnx
 
             var image = Mat.FromStream(stream, ImreadModes.AnyColor);
 
-            YoloPrediction[] detectedObjects = _predictor.Predict(image, thresh).ToArray();
+            YoloPrediction[] detectedObjects = _predictor.Predict(image, thresh, _targetTypes).ToArray();
 
             return GenerateBoundingBoxes(detectedObjects);
         }
@@ -109,7 +124,7 @@ namespace Detector.YoloV11Onnx
         {
             var image = Cv2.ImRead(imageFile);
 
-            YoloPrediction[] detectedObjects = _predictor.Predict(image, thresh).ToArray();
+            YoloPrediction[] detectedObjects = _predictor.Predict(image, thresh, _targetTypes).ToArray();
 
             return GenerateBoundingBoxes(detectedObjects);
         }

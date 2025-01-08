@@ -203,6 +203,12 @@ namespace Detector.YoloV11Onnx
                         }
                     }
 
+                    if (targetTypes != null && !targetTypes.Contains(_yoloModel.Names[classId]))
+                    {
+                        dataSpan = dataSpan.Slice(signalResultNum);
+                        continue;
+                    }
+
                     // 仅当类别分数超过阈值时才进行进一步处理
                     if (maxClassScore > targetConfidence)
                     {
@@ -242,6 +248,11 @@ namespace Detector.YoloV11Onnx
                 var yoloPredictions = new List<YoloPrediction>();
                 foreach (var idx in nmsResult)
                 {
+                    // if (targetTypes != null && !targetTypes.Contains(_yoloModel.Names[classIds[idx]]))
+                    // {
+                    //     continue;
+                    // }
+
                     var prediction = new YoloPrediction()
                     {
                         TypeId = classIds[idx],
