@@ -59,7 +59,8 @@ namespace Detector.Tests
                 mat.Rectangle(new Point(item.X, item.Y), new Point(item.X + item.Width, item.Y + item.Height), Scalar.Aqua);
             }
 
-            Window.ShowImages(mat);
+            Cv2.ImShow("test", mat);
+            Cv2.WaitKey();
         }
 
         [Test]

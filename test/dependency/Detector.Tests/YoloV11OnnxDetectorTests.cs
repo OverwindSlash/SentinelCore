@@ -20,7 +20,9 @@ namespace Detector.Tests
             {
                 {"model_path", ModelPath},
                 {"model_config", ModelConfig},
-                {"use_cuda", "true"}
+                {"use_cuda", "true"},
+                {"gpu_id", "0"},
+                {"target_types", ""}
             });
 
             // // Avoid first time-consuming call in test cases.
@@ -57,7 +59,8 @@ namespace Detector.Tests
                 mat.Rectangle(new Point(item.X, item.Y), new Point(item.X + item.Width, item.Y + item.Height), Scalar.Aqua);
             }
 
-            Window.ShowImages(mat);
+            Cv2.ImShow("test", mat);
+            Cv2.WaitKey();
         }
 
         [Test]
