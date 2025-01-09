@@ -11,13 +11,13 @@ namespace SentinelCore.Domain.Tests.AnalysisEngine
         {
             var definition = new ImageAnalysisDefinition();
 
-            definition.Name = "MOT-Demo";
+            definition.Name = "Suzhou-Demo";
 
             definition.IsObjectAnalyzableRetain = false;
             definition.IsDoubleLineCounting = false;
 
-            int width = 586;
-            int height = 440;
+            int width = 2560;
+            int height = 1440;
 
             definition.SetImageSize(width, height);
 
@@ -25,28 +25,28 @@ namespace SentinelCore.Domain.Tests.AnalysisEngine
             // tracking area
             {
                 AnalysisArea analysisArea = new AnalysisArea();
-                analysisArea.Name = "detection region";
+                analysisArea.Name = "alarm region";
 
                 // method 1
-                // var topLeft = new NormalizedPoint(0, 0);
-                // var topRight = new NormalizedPoint(1, 0);
-                // var bottomRight = new NormalizedPoint(1, 1);
-                // var bottomLeft = new NormalizedPoint(0, 1);
-                // topLeft.SetImageSize(width, height);
-                // topRight.SetImageSize(width, height);
-                // bottomRight.SetImageSize(width, height);
-                // bottomLeft.SetImageSize(width, height);
-                //
-                // analysisArea.AddPoint(topLeft);
-                // analysisArea.AddPoint(topRight);
-                // analysisArea.AddPoint(bottomRight);
-                // analysisArea.AddPoint(bottomLeft);
+                var topLeft = new NormalizedPoint(0, 0);
+                var topRight = new NormalizedPoint(1, 0);
+                var bottomRight = new NormalizedPoint(1, 1);
+                var bottomLeft = new NormalizedPoint(0, 1);
+                topLeft.SetImageSize(width, height);
+                topRight.SetImageSize(width, height);
+                bottomRight.SetImageSize(width, height);
+                bottomLeft.SetImageSize(width, height);
+                
+                analysisArea.AddPoint(topLeft);
+                analysisArea.AddPoint(topRight);
+                analysisArea.AddPoint(bottomRight);
+                analysisArea.AddPoint(bottomLeft);
 
                 // method 2
-                analysisArea.AddPoint(new NormalizedPoint(width, height, 162, 169));
-                analysisArea.AddPoint(new NormalizedPoint(width, height, 341, 171));
-                analysisArea.AddPoint(new NormalizedPoint(width, height, 338, 328));
-                analysisArea.AddPoint(new NormalizedPoint(width, height, 159, 332));
+                // analysisArea.AddPoint(new NormalizedPoint(width, height, 66, 634));
+                // analysisArea.AddPoint(new NormalizedPoint(width, height, 254, 1110));
+                // analysisArea.AddPoint(new NormalizedPoint(width, height, 1930, 417));
+                // analysisArea.AddPoint(new NormalizedPoint(width, height, 1155, 367));
 
                 definition.AddAnalysisArea(analysisArea);
             }
@@ -82,34 +82,33 @@ namespace SentinelCore.Domain.Tests.AnalysisEngine
 
             // lane 1
             {
-
                 Lane lane = new Lane();
-                lane.Name = "test lane";
-                lane.Type = "sidewalk";
+                lane.Name = "alarm region";
+                lane.Type = "alarm";
                 lane.Index = 1;
 
                 // method 1
-                var topLeft = new NormalizedPoint(0, 0);
-                var topRight = new NormalizedPoint(1, 0);
-                var bottomRight = new NormalizedPoint(1, 1);
-                var bottomLeft = new NormalizedPoint(0, 1);
-                topLeft.SetImageSize(width, height);
-                topRight.SetImageSize(width, height);
-                bottomRight.SetImageSize(width, height);
-                bottomLeft.SetImageSize(width, height);
-
-                lane.AddPoint(topLeft);
-                lane.AddPoint(topRight);
-                lane.AddPoint(bottomRight);
-                lane.AddPoint(bottomLeft);
+                // var topLeft = new NormalizedPoint(0, 0);
+                // var topRight = new NormalizedPoint(1, 0);
+                // var bottomRight = new NormalizedPoint(1, 1);
+                // var bottomLeft = new NormalizedPoint(0, 1);
+                // topLeft.SetImageSize(width, height);
+                // topRight.SetImageSize(width, height);
+                // bottomRight.SetImageSize(width, height);
+                // bottomLeft.SetImageSize(width, height);
+                //
+                // lane.AddPoint(topLeft);
+                // lane.AddPoint(topRight);
+                // lane.AddPoint(bottomRight);
+                // lane.AddPoint(bottomLeft);
 
                 // method 2
-                lane.AddPoint(new NormalizedPoint(width, height, 0, 0));
-                lane.AddPoint(new NormalizedPoint(width, height, width, 0));
-                lane.AddPoint(new NormalizedPoint(width, height, width, height));
-                lane.AddPoint(new NormalizedPoint(width, height, 0, height));
+                lane.AddPoint(new NormalizedPoint(width, height, 66, 634));
+                lane.AddPoint(new NormalizedPoint(width, height, 254, 1110));
+                lane.AddPoint(new NormalizedPoint(width, height, 1930, 417));
+                lane.AddPoint(new NormalizedPoint(width, height, 1155, 367));
 
-                // definition.Lanes.Add(lane);
+                definition.Lanes.Add(lane);
             }
 
             // count line (upward)

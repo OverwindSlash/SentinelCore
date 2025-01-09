@@ -1,0 +1,56 @@
+{
+  "Name": "Suzhou-Demo",
+  "IsObjectAnalyzableRetain": false,
+  "IsDoubleLineCounting": false,
+  "AnalysisAreas": [
+      {
+          "Name": "alarm region",
+          "Points": [
+              {
+                  "NormalizedX": 0,
+                  "NormalizedY": 0
+              },
+              {
+                  "NormalizedX": 1,
+                  "NormalizedY": 0
+              },
+              {
+                  "NormalizedX": 1,
+                  "NormalizedY": 1
+              },
+              {
+                  "NormalizedX": 0,
+                  "NormalizedY": 1
+              }
+          ]
+      }
+  ],
+  "ExcludedAreas": [],
+  "Lanes": [
+      {
+          "Name": "alarm region",
+          "Index": 1,
+          "Type": "alarm",
+          "ForbiddenTypes": [],
+          "Points": [
+              {
+                  "NormalizedX": 0.02578125,
+                  "NormalizedY": 0.44027777777777777
+              },
+              {
+                  "NormalizedX": 0.09921875,
+                  "NormalizedY": 0.7708333333333334
+              },
+              {
+                  "NormalizedX": 0.75390625,
+                  "NormalizedY": 0.28958333333333336
+              },
+              {
+                  "NormalizedX": 0.451171875,
+                  "NormalizedY": 0.2548611111111111
+              }
+          ]
+      }
+  ],
+  "CountLines": []
+}

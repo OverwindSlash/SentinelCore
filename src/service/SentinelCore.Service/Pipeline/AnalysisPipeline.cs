@@ -45,6 +45,7 @@ namespace SentinelCore.Service.Pipeline
         private List<IJsonMessagePoster> _jsonMsgPosters;
 
         public string DeviceName => _pipeLineSettings.DeviceName;
+        public IRegionManager RegionManager => _regionManager;
         public ISnapshotManager SnapshotManager => _snapshotManager;
         public List<IJsonMessagePoster> JsonMessagePosters => _jsonMsgPosters;
 

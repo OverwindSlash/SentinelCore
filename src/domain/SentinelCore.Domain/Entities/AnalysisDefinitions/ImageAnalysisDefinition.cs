@@ -8,6 +8,7 @@ public class ImageAnalysisDefinition : ImageBasedGeometric
     private List<AnalysisArea> _analysisAreas;
     private List<ExcludedArea> _excludedAreas;
     private List<Lane> _lanes;
+    private List<InterestArea> _interestAreas;
     private List<Tuple<EnterLine, LeaveLine>> _countLines;
 
     public string Name { get; set; }
@@ -48,6 +49,16 @@ public class ImageAnalysisDefinition : ImageBasedGeometric
         set => _lanes = value;
     }
 
+    public List<InterestArea> InterestAreas
+    {
+        get
+        {
+            CheckImageSizeInitialized();
+            return _interestAreas;
+        }
+        set => _interestAreas = value;
+    }
+
     public List<Tuple<EnterLine, LeaveLine>> CountLines
     {
         get
@@ -63,6 +74,7 @@ public class ImageAnalysisDefinition : ImageBasedGeometric
         AnalysisAreas = new List<AnalysisArea>();
         ExcludedAreas = new List<ExcludedArea>();
         Lanes = new List<Lane>();
+        InterestAreas = new List<InterestArea>();
         CountLines = new List<Tuple<EnterLine, LeaveLine>>();
 
         IsObjectAnalyzableRetain = false;
@@ -89,6 +101,11 @@ public class ImageAnalysisDefinition : ImageBasedGeometric
             lane.SetImageSize(width, height);
         }
 
+        foreach (var area in InterestAreas)
+        {
+            area.SetImageSize(width, height);
+        }
+
         foreach (var countLine in CountLines)
         {
             countLine.Item1.SetImageSize(width, height);
@@ -112,6 +129,12 @@ public class ImageAnalysisDefinition : ImageBasedGeometric
     {
         ValidateImageWidthAndHeight(lane);
         Lanes.Add(lane);
+    }
+
+    public void AddInterestArea(InterestArea interestArea)
+    {
+        ValidateImageWidthAndHeight(interestArea);
+        InterestAreas.Add(interestArea);
     }
 
     public void AddCountLinePair(EnterLine enterLine, LeaveLine leaveLine)

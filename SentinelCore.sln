@@ -87,6 +87,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Handler.ObjectDensity", "sr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaLoader.FFMpeg.IPC", "src\dependency\MediaLoader.FFMpeg.IPC\MediaLoader.FFMpeg.IPC.csproj", "{611F4B4A-66FF-4738-8058-D1DDE4889FB2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Handler.RegionAccess", "src\handler\Handler.RegionAccess\Handler.RegionAccess.csproj", "{A914EBF2-D4C5-42B5-9A78-FC1A0B2CCA8C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -181,6 +183,10 @@ Global
 		{611F4B4A-66FF-4738-8058-D1DDE4889FB2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{611F4B4A-66FF-4738-8058-D1DDE4889FB2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{611F4B4A-66FF-4738-8058-D1DDE4889FB2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A914EBF2-D4C5-42B5-9A78-FC1A0B2CCA8C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A914EBF2-D4C5-42B5-9A78-FC1A0B2CCA8C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A914EBF2-D4C5-42B5-9A78-FC1A0B2CCA8C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A914EBF2-D4C5-42B5-9A78-FC1A0B2CCA8C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -226,6 +232,7 @@ Global
 		{6C720273-1F3A-4A3E-8516-2E4E276E73A5} = {CF5FB705-B6D2-48DE-9D2C-A4D8D8435D3A}
 		{10499311-5B75-461B-A25D-F07449EBC2BA} = {C9484707-BAFA-4449-BC7A-FE2B0A66FCE9}
 		{611F4B4A-66FF-4738-8058-D1DDE4889FB2} = {74D869E1-E47A-4537-AB2F-D0F9692C951F}
+		{A914EBF2-D4C5-42B5-9A78-FC1A0B2CCA8C} = {C9484707-BAFA-4449-BC7A-FE2B0A66FCE9}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9572C7DE-17AC-40C7-A46E-C2E48064E3F9}
