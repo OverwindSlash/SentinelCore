@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\domain\SentinelCore.Domain\SentinelCore.Domain.csproj" />
+  </ItemGroup>
+
 </Project>

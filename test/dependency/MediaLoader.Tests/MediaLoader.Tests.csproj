@@ -26,6 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\src\dependency\MediaLoader.FFMpeg.IPC\MediaLoader.FFMpeg.IPC.csproj" />
     <ProjectReference Include="..\..\..\src\dependency\MediaLoader.FFMpeg\MediaLoader.FFMpeg.csproj" />
     <ProjectReference Include="..\..\..\src\dependency\MediaLoader.OpenCV\MediaLoader.OpenCV.csproj" />
   </ItemGroup>
