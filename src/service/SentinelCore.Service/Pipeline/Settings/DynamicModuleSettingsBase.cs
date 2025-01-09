@@ -4,11 +4,11 @@
     {
         public string AssemblyFile { get; set; }
         public string FullQualifiedClassName { get; set; }
-        public string[] Parameters { get; set; }
+        public Dictionary<string, string> Preferences { get; set; }
 
         public DynamicModuleSettingsBase()
         {
-            Parameters = new string[0];
+            Preferences = new Dictionary<string, string>();
         }
     }
 }

@@ -13,45 +13,39 @@
     //"FullQualifiedClassName": "MediaLoader.OpenCV.VideoLoader",
     "BufferSize": 300,
     "VideoStride": 2,
-    "Parameters": []
+    "Preferences": {
+    }
   },
-  //"Detector": {
-  //  "AssemblyFile": "Detector.YoloV11Onnx.dll",
-  //  "FullQualifiedClassName": "Detector.YoloV11Onnx.YoloOnnxDetector",
-  //  "Parameters": [],
-  //  "ModelPath": "Models\\boatplate.onnx",
-  //  "ModelConfig": "Models\\boatplate.json",
-  //  "UseCuda": true,
-  //  "GpuId": 0,
-  //  "Thresh": 0.5
-  //},
   "Detector": {
     "AssemblyFile": "Detector.YoloV5Onnx.dll",
     "FullQualifiedClassName": "Detector.YoloV5Onnx.YoloOnnxDetector",
-    "ModelPath": "Models\\yolov5x.onnx",
+    "ModelPath": "Models\\yolov5m.onnx",
     "ModelConfig": "Models\\yolov5.json",
+    //"AssemblyFile": "Detector.YoloV11Onnx.dll",
+    //"FullQualifiedClassName": "Detector.YoloV11Onnx.YoloOnnxDetector",
+    //"ModelPath": "Models\\yolo11m.onnx",
+    //"ModelConfig": "Models\\yolov11.json",
     "UseCuda": true,
     "GpuId": 0,
     "Thresh": 0.3,
     "TargetTypes": "person",
-    "Parameters": []
+    "Preferences": {
+    }
   },
   "Tracker": {
     "AssemblyFile": "Tracker.Sort.dll",
     "FullQualifiedClassName": "Tracker.Sort.SortTracker",
-    "Parameters": [
-      0.1,
-      75
-    ]
+    "IouThreshold": 0.1,
+    "MaxMisses": 75,
+    "Preferences": {
+    }
   },
   "RegionManager": {
     "AssemblyFile": "RegionManager.DefinitionBased.dll",
     "FullQualifiedClassName": "RegionManager.DefinitionBased.RegionManager",
-    "Parameters": [
-      //"default-region.json",
-      //"osd-exclusive-region.json",
-      "mot-demo.json"
-    ]
+    "DefinitionFilePath": "mot-demo.json",
+    "Preferences": {
+    }
   },
   "Snapshot": {
     "AssemblyFile": "SnapshotManager.InMemory.dll",
@@ -68,12 +62,12 @@
   "EventPublisher": {
     "AssemblyFile": "EventPublisher.MessagePipe.dll",
     "FullQualifiedClassName": "EventPublisher.MessagePipe.DomainEventPublisher",
-    "Parameters": []
+    "Preferences": {
+    }
   },
   "EventSubscriber": {
     "AssemblyFile": "EventSubscriber.MessagePipe.dll",
     "FullQualifiedClassName": "EventSubscriber.MessagePipe.DomainEventSubscriber",
-    "Parameters": [],
     "Preferences": {
     }
   },
@@ -81,7 +75,6 @@
     //{
     //  "AssemblyFile": "Handler.MultiOccurrence.dll",
     //  "FullQualifiedClassName": "Handler.MultiOccurrence.Algorithms.MultiOccurrenceAlg",
-    //  "Parameters": [],
     //  "Preferences": {
     //    "EventName": "撒网事件",
     //    "EventMessage": "侦测到疑似撒网行为",
@@ -94,7 +87,6 @@
     //{
     //  "AssemblyFile": "Handler.Ocr.dll",
     //  "FullQualifiedClassName": "Handler.Ocr.Algorithms.PaddleSharpOcrAlg",
-    //  "Parameters": [],
     //  "Preferences": {
     //    "EventName": "船牌识别",
     //    "TypeToOCR": "sign",
@@ -105,7 +97,6 @@
     {
       "AssemblyFile": "Handler.ObjectDensity.dll",
       "FullQualifiedClassName": "Handler.ObjectDensity.Algorithms.ObjectDensityAlg",
-      "Parameters": [],
       "Preferences": {
         "EventName": "人员聚集",
         "ObjectType": "person",
@@ -118,7 +109,6 @@
     {
       "AssemblyFile": "MessagePoster.RestfulJson.dll",
       "FullQualifiedClassName": "MessagePoster.RestfulJson.MessagePoster",
-      "Parameters": [],
       "DestinationUrl": "http://127.0.0.1:5000/illegalfishing_warn",
       "Preferences": {
       }

@@ -40,11 +40,7 @@ public class VideoLoader : IVideoLoader
     private const int MaxRetries = 5;
     private const int RetryDelayMs = 1000;
 
-    public VideoLoader()
-        : this("tempCameraId", 300)
-    { }
-
-    public VideoLoader(string deviceId, int bufferSize)
+    public VideoLoader(string deviceId, int bufferSize, Dictionary<string, string> preferences = null)
     {
         Log.Information($"Initialize OpenCV video capture...");
 

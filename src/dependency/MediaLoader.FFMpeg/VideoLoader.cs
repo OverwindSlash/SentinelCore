@@ -49,7 +49,7 @@ namespace MediaLoader.FFMpeg
 
         private bool _disposed = false;
 
-        public VideoLoader(string deviceId, int bufferSize)
+        public VideoLoader(string deviceId, int bufferSize, Dictionary<string, string> preferences = null)
         {
             Log.Information($"Initialize FFMpeg video capture...");
 
@@ -82,8 +82,8 @@ namespace MediaLoader.FFMpeg
             // // 设置最大延迟为 0.5 秒（500000 微秒）
             // ffmpeg.av_dict_set(&options, "max_delay", "500000", 0);
             //
-            // // 设置缓冲区大小为 4MB
-            // ffmpeg.av_dict_set(&options, "buffer_size", "4194304", 0);
+            // // 设置缓冲区大小为 8MB
+            // ffmpeg.av_dict_set(&options, "buffer_size", "8388608", 0);
             //
             // // 设置分析时长为 1 秒，减少打开文件的延迟
             // ffmpeg.av_dict_set(&options, "analyzeduration", "1000000", 0);
@@ -95,6 +95,8 @@ namespace MediaLoader.FFMpeg
             // // 设置重连尝试次数
             // ffmpeg.av_dict_set(&options, "reconnect_streamed", "1", 0);
             // ffmpeg.av_dict_set(&options, "reconnect_delay_max", "10", 0); // 最长重连延迟 10 秒
+            //
+            // ffmpeg.av_dict_free(&options);
 
             // Open video file or stream
             _formatContext = ffmpeg.avformat_alloc_context();
@@ -107,8 +109,6 @@ namespace MediaLoader.FFMpeg
                     throw new ApplicationException(message);
                 }
             }
-
-            // ffmpeg.av_dict_free(&options);
 
             // Retrieve stream information
             if (ffmpeg.avformat_find_stream_info(_formatContext, null) < 0)
@@ -245,7 +245,7 @@ namespace MediaLoader.FFMpeg
 
                 long elapsedTimeMs = stopwatch.ElapsedMilliseconds;
 
-                Log.Debug($"FM:{FrameMilliSec} EM:{elapsedTimeMs} Diff:{FrameMilliSec - elapsedTimeMs}");
+                //Log.Debug($"FM:{FrameMilliSec} EM:{elapsedTimeMs} Diff:{FrameMilliSec - elapsedTimeMs}");
 
                 var sleepMilliSec = (int)Math.Min(100, FrameMilliSec - elapsedTimeMs);
                 if (sleepMilliSec > 0)
@@ -262,7 +262,7 @@ namespace MediaLoader.FFMpeg
                 // Continue get frame.
                 matImage = GetNextFrame();
 
-                Log.Debug($"Buffer frame count:{_frameBuffer.Count}");
+                //Log.Debug($"Buffer frame count:{_frameBuffer.Count}");
             }
 
             Close();

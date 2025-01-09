@@ -2,5 +2,6 @@
 {
     public class RegionManagerSettings : DynamicModuleSettingsBase
     {
+        public string DefinitionFilePath { get; set; }
     }
 }

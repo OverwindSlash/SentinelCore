@@ -4,6 +4,7 @@ using OpenCvSharp.Extensions;
 using SentinelCore.Domain.Abstractions.ObjectDetector;
 using SentinelCore.Domain.Entities.ObjectDetection;
 using System.Drawing;
+using Serilog;
 
 namespace Detector.YoloV5Onnx
 {
@@ -12,6 +13,9 @@ namespace Detector.YoloV5Onnx
         private YoloPredictor _predictor;
         private List<string> _targetTypes = new();
         private List<string> _names = new();
+
+
+
         
         public void PrepareEnv(Dictionary<string, string>? envParam = null)
         {
@@ -20,6 +24,8 @@ namespace Detector.YoloV5Onnx
 
         public void Init(Dictionary<string, string>? initParam = null)
         {
+            Log.Information($"YOlO v5 detector initializing...");
+
             if (!initParam.TryGetValue("model_path", out var modelPath))
             {
                 throw new ArgumentException("initParam does not contain model_path element.");
@@ -31,11 +37,11 @@ namespace Detector.YoloV5Onnx
             }
 
             SessionOptions option = null;
+            int gpuId = 0;
             if (initParam.TryGetValue("use_cuda", out var useCuda))
             {
                 if (useCuda.ToLower() == "true")
                 {
-                    int gpuId = 0;
                     if (initParam.TryGetValue("gpu_id", out var value))
                     {
                         gpuId = Int32.Parse(value);
@@ -44,6 +50,8 @@ namespace Detector.YoloV5Onnx
                     option = SessionOptions.MakeSessionOptionWithCudaProvider(gpuId);
                 }
             }
+
+            Log.Information($"Model: {modelPath}, Config: {modelConfig}, Cuda: {useCuda}, GPU: {gpuId}");
 
             if (!initParam.TryGetValue("target_types", out var targetTypes))
             {
@@ -59,6 +67,8 @@ namespace Detector.YoloV5Onnx
                 _targetTypes.AddRange(targetTypes.Split(','));
             }
 
+            Log.Information($"Target types: {targetTypes}");
+
             _predictor = new YoloPredictor(File.ReadAllBytes(modelPath), modelConfig, option);
 
             var predictorMetadata = _predictor.Metadata.CustomMetadataMap;
@@ -72,8 +82,10 @@ namespace Detector.YoloV5Onnx
             _names.AddRange(names);
 
             // Avoid first time-consuming call in test cases.
+            Log.Information($"Warm up model...");
             using var mat = new Mat("Images/Traffic_001.jpg", ImreadModes.Color);
             Detect(mat, 0.3F);
+            Log.Information($"Warm up complete.");
         }
 
         public int GetClassNumber()

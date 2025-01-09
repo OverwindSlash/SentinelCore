@@ -87,7 +87,7 @@ namespace SentinelCore.Service.Pipeline
 
             var mediaLoader = CreateInstance<IVideoLoader>(
                 _mediaLoaderSettings.AssemblyFile, _mediaLoaderSettings.FullQualifiedClassName,
-                new object?[] { _pipeLineSettings.DeviceName, _mediaLoaderSettings.BufferSize });
+                new object?[] { _pipeLineSettings.DeviceName, _mediaLoaderSettings.BufferSize, _mediaLoaderSettings.Preferences });
             _services.AddTransient<IVideoLoader>(sp => mediaLoader);
 
             var detector = CreateInstance<IObjectDetector>(
@@ -100,7 +100,7 @@ namespace SentinelCore.Service.Pipeline
 
             var tracker = CreateInstance<IObjectTracker>(
                 _trackerSettings.AssemblyFile, _trackerSettings.FullQualifiedClassName,
-                new object?[] { float.Parse(_trackerSettings.Parameters[0]), int.Parse(_trackerSettings.Parameters[1]) });
+                new object?[] { _trackerSettings.IouThreshold, _trackerSettings.MaxMisses, _trackerSettings.Preferences });
             _services.AddTransient<IObjectTracker>(sp => tracker);
 
             var snapshot = CreateInstance<ISnapshotManager>(
@@ -207,7 +207,7 @@ namespace SentinelCore.Service.Pipeline
 
             _regionManager = _provider.GetService<IRegionManager>();
             
-            _regionManager.LoadAnalysisDefinition(_regionManagerSettings.Parameters[0],
+            _regionManager.LoadAnalysisDefinition(_regionManagerSettings.DefinitionFilePath,
                 _videoLoader.Width, _videoLoader.Height);
 
             _objectTracker = _provider.GetService<IObjectTracker>();

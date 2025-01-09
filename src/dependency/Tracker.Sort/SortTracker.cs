@@ -14,7 +14,7 @@ namespace Tracker.Sort
         private readonly ILogger<SortTracker> _logger;
         private int _trackerIndex = 1; // MOT Evaluations requires a start index of 1
 
-        public SortTracker(float iouThreshold = 0.1f, int maxMisses = 25)
+        public SortTracker(float iouThreshold = 0.1f, int maxMisses = 25, Dictionary<string, string> preferences = null)
         {
             _trackers = new Dictionary<int, (Track, KalmanBoxTracker)>();
             IouThreshold = iouThreshold;
