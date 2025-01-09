@@ -38,6 +38,10 @@
     "IouThreshold": 0.1,
     "MaxMisses": 75,
     "Preferences": {
+      "AppearanceWeight": 0.775,
+      "FramesToAppearanceSmooth": 40,
+      "SmoothAppearanceWeight": 0.875,
+      "MinStreak": 8
     }
   },
   "RegionManager": {
