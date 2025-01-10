@@ -1,16 +1,16 @@
 {
   "Pipeline": {
     "DeviceName": "CameraId001",
-    "Uri": "rtsp://admin:CS%40202304@192.168.1.151:554/Streaming/Channels/101?transportmode=unicast&profile=Profile_1",
-    //"Uri": "D:\\Video\\Pedestrain\\MOT20-03-raw.mp4",
+    //"Uri": "rtsp://admin:CS%40202304@192.168.1.151:554/Streaming/Channels/101?transportmode=unicast&profile=Profile_1",
+    "Uri": "D:\\Video\\Ship\\suzhou.ts",
     "FrameLifetime": 200,
     "EnableDebugDisplay": true
   },
   "MediaLoader": {
-    "AssemblyFile": "MediaLoader.FFMpeg.dll",
-    "FullQualifiedClassName": "MediaLoader.FFMpeg.VideoLoader",
-    //"AssemblyFile": "MediaLoader.OpenCV.dll",
-    //"FullQualifiedClassName": "MediaLoader.OpenCV.VideoLoader",
+    //"AssemblyFile": "MediaLoader.FFMpeg.dll",
+    //"FullQualifiedClassName": "MediaLoader.FFMpeg.VideoLoader",
+    "AssemblyFile": "MediaLoader.OpenCV.dll",
+    "FullQualifiedClassName": "MediaLoader.OpenCV.VideoLoader",
     "BufferSize": 300,
     "VideoStride": 2,
     "Preferences": {
@@ -28,7 +28,7 @@
     "UseCuda": true,
     "GpuId": 0,
     "Thresh": 0.3,
-    "TargetTypes": "person",
+    "TargetTypes": "boat",
     "Preferences": {
     }
   },
@@ -47,7 +47,7 @@
   "RegionManager": {
     "AssemblyFile": "RegionManager.DefinitionBased.dll",
     "FullQualifiedClassName": "RegionManager.DefinitionBased.RegionManager",
-    "DefinitionFilePath": "mot-demo.json",
+    "DefinitionFilePath": "suzhou-demo.json",
     "Preferences": {
     }
   },
@@ -98,14 +98,23 @@
     //    "ScoreThresh": "0.75"
     //  }
     //},
+    //{
+    //  "AssemblyFile": "Handler.ObjectDensity.dll",
+    //  "FullQualifiedClassName": "Handler.ObjectDensity.Algorithms.ObjectDensityAlg",
+    //  "Preferences": {
+    //    "EventName": "人员聚集",
+    //    "ObjectType": "person",
+    //    "CountingRegion": "",
+    //    "MaxCount": "10"
+    //  }
+    //},
     {
-      "AssemblyFile": "Handler.ObjectDensity.dll",
-      "FullQualifiedClassName": "Handler.ObjectDensity.Algorithms.ObjectDensityAlg",
+      "AssemblyFile": "Handler.RegionAccess.dll",
+      "FullQualifiedClassName": "Handler.RegionAccess.Algorithms.RegionAccessAlg",
       "Preferences": {
-        "EventName": "人员聚集",
-        "ObjectType": "person",
-        "CountingRegion": "",
-        "MaxCount": "10"
+        "EventName": "警戒区",
+        "InterestAreaName": "alarm region",
+        "ObjTypes": "boat"
       }
     }
   ],
