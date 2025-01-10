@@ -102,7 +102,7 @@ namespace Handler.ObjectDensity.Algorithms
                 }
 
                 var objectCenter = new NormalizedPoint(frame.Scene.Width, frame.Scene.Height, 
-                    detectedObject.BottomCenterX, detectedObject.BottomCenterY);
+                    detectedObject.CenterX, detectedObject.CenterY);
 
                 if (!_countingRegion.IsPointInPolygon(objectCenter))
                 {

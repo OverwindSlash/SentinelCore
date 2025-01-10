@@ -9,7 +9,6 @@ using SentinelCore.Domain.Abstractions.ObjectDetector;
 using SentinelCore.Domain.Abstractions.ObjectTracker;
 using SentinelCore.Domain.Abstractions.RegionManager;
 using SentinelCore.Domain.Abstractions.SnapshotManager;
-using SentinelCore.Domain.Entities.AnalysisDefinitions;
 using SentinelCore.Domain.Entities.AnalysisDefinitions.Geometrics;
 using SentinelCore.Domain.Entities.AnalysisEngine;
 using SentinelCore.Domain.Entities.VideoStream;
@@ -17,6 +16,7 @@ using SentinelCore.Domain.Events.AnalysisEngine;
 using SentinelCore.Service.Pipeline.Settings;
 using Serilog;
 using System.Reflection;
+using SentinelCore.Domain.Entities.ObjectDetection;
 
 namespace SentinelCore.Service.Pipeline
 {
@@ -263,13 +263,26 @@ namespace SentinelCore.Service.Pipeline
                 return;
             }
 
+            DisplayDefinitions(analyzedFrame);
+
+            // Select one display pattern.
+            // DisplayBasicResults(analyzedFrame);
+            DisplayObjectDensityResults(analyzedFrame);
+            // DisplayRegionAccessResults(analyzedFrame);
+
+            Cv2.ImShow("test", analyzedFrame.Scene.Resize(new Size(1920, 1080)));
+            Cv2.WaitKey(1);
+        }
+
+        private void DisplayDefinitions(Frame analyzedFrame)
+        {
             var definition = _regionManager.AnalysisDefinition;
 
-            foreach (var interestArea in definition.InterestAreas)
-            {
-                DrawRegion(interestArea, analyzedFrame.Scene, Scalar.Red);
-            }
-
+            // foreach (var analysisArea in definition.AnalysisAreas)
+            // {
+            //     DrawRegion(analysisArea, analyzedFrame.Scene, Scalar.Lime);
+            // }
+            //
             // foreach (var excludedArea in definition.ExcludedAreas)
             // {
             //     DrawRegion(excludedArea, analyzedFrame.Scene, Scalar.Red);
@@ -280,32 +293,48 @@ namespace SentinelCore.Service.Pipeline
             //     DrawRegion(lane, analyzedFrame.Scene, Scalar.Yellow);
             // }
             //
+            // foreach (var interestArea in definition.InterestAreas)
+            // {
+            //     DrawRegion(interestArea, analyzedFrame.Scene, Scalar.Yellow);
+            //     var centerPoint = interestArea.GetCenterNormalizedPoint();
+            //     analyzedFrame.Scene.PutText(interestArea.Name, new Point(centerPoint.OriginalX - 30, centerPoint.OriginalY - 30), HersheyFonts.HersheyPlain, 2.0, Scalar.Yellow);
+            // }
+            //
             // foreach (var countLine in definition.CountLines)
             // {
             //     DrawLine(countLine.Item1, analyzedFrame.Scene, Scalar.Black);
             //     DrawLine(countLine.Item2, analyzedFrame.Scene, Scalar.Black);
             // }
+        }
 
-            // Debug Display
-            // foreach (var detectedObject in analyzedFrame.DetectedObjects)
-            // {
-            //     if (!detectedObject.IsUnderAnalysis)
-            //     {
-            //         continue;
-            //     }
-            //
-            //     var image = analyzedFrame.Scene;
-            //     var bbox = detectedObject.Bbox;
-            //
-            //     // Display box for all objects.
-            //     image.Rectangle(new Point(bbox.X, bbox.Y), new Point(bbox.X + bbox.Width, bbox.Y + bbox.Height), Scalar.Red);
-            //
-            //     // Display id.
-            //     image.PutText(detectedObject.Id, new Point(bbox.X, bbox.Y - 20), HersheyFonts.HersheyPlain, 1.0, Scalar.Red);
-            //
-            //     // Display lane
-            //     //image.PutText("L:" + detectedObject.LaneIndex.ToString(), new Point(bbox.X + 20, bbox.Y - 20), HersheyFonts.HersheyPlain, 1.0, Scalar.Red);
-            // }
+        private void DisplayBasicResults(Frame analyzedFrame)
+        {
+            foreach (var detectedObject in analyzedFrame.DetectedObjects)
+            {
+                if (!detectedObject.IsUnderAnalysis)
+                {
+                    continue;
+                }
+
+                var image = analyzedFrame.Scene;
+                var bbox = detectedObject.Bbox;
+
+                Scalar boxColor = new Scalar(0, 255, 0);    // 默认绿色边框
+
+                // Display box for all objects.
+                image.Rectangle(new Point(bbox.X, bbox.Y), new Point(bbox.X + bbox.Width, bbox.Y + bbox.Height), boxColor);
+
+                // Display id.
+                image.PutText(detectedObject.Id, new Point(bbox.X, bbox.Y - 20), HersheyFonts.HersheyPlain, 2.0, boxColor);
+
+                // Display lane
+                //image.PutText("L:" + detectedObject.LaneIndex.ToString(), new Point(bbox.X + 20, bbox.Y - 20), HersheyFonts.HersheyPlain, 1.0, Scalar.Red);
+            }
+        }
+
+        private void DisplayObjectDensityResults(Frame analyzedFrame)
+        {
+            var definition = _regionManager.AnalysisDefinition;
 
             // 定义透明度
             double alpha = 0.4; // 边框透明度
@@ -323,28 +352,16 @@ namespace SentinelCore.Service.Pipeline
                 }
 
                 var bbox = detectedObject.Bbox;
-                
+
                 // 定义边框颜色和厚度
-                Scalar boxColor = new Scalar(0, 255, 0); // 绿色边框
+                Scalar boxColor = new Scalar(255, 255, 0); // 绿色边框
                 int boxThickness = 1;
-
-                if (detectedObject.GetProperty("EnterRegion") != null)
-                {
-                    var isEnterRegion = (bool)detectedObject.GetProperty("EnterRegion");
-                    boxColor = new Scalar(255, 0, 0); // 红色边框
-                }
-
-                if (detectedObject.GetProperty("LeaveRegion") != null)
-                {
-                    var isLeaveRegion = (bool)detectedObject.GetProperty("LeaveRegion");
-                    boxColor = new Scalar(0, 0, 255); // 蓝色边框
-                }
 
                 // 在覆盖图层上绘制矩形
                 Cv2.Rectangle(overlay, new Point(bbox.X, bbox.Y), new Point(bbox.X + bbox.Width, bbox.Y + bbox.Height), boxColor, boxThickness, LineTypes.AntiAlias);
 
                 // 定义文本内容和属性
-                string label = $"p:{detectedObject.TrackingId}";
+                string label = $"{detectedObject.Id}";
                 // string laneText = $"L: {detectedObject.LaneIndex}";
 
                 // 定义字体参数
@@ -369,35 +386,84 @@ namespace SentinelCore.Service.Pipeline
                 Cv2.PutText(overlay, label, new Point(bbox.X, bbox.Y - 5), fontFace, fontScale, Scalar.White, fontThickness, LineTypes.AntiAlias);
                 // Cv2.PutText(overlay, laneText, new Point(bbox.X + 85, bbox.Y - 5), fontFace, fontScale, Scalar.White, fontThickness, LineTypes.AntiAlias);
             }
-            
-            // // Draw specified area for debug
-            // foreach (var analysisArea in definition.AnalysisAreas)
-            // {
-            //     var counting = (int)analyzedFrame.GetProperty("counting");
-            //     if (counting != null)
-            //     {
-            //         var areaPoint = analysisArea.Points[1];
-            //
-            //         if (counting < 10)
-            //         {
-            //             DrawRegion(analysisArea, analyzedFrame.Scene, Scalar.Lime);
-            //             Cv2.PutText(analyzedFrame.Scene, counting.ToString(), new Point(areaPoint.OriginalX - 20, areaPoint.OriginalY - 10), HersheyFonts.HersheyPlain, 1.5, Scalar.Lime);
-            //         }
-            //         else
-            //         {
-            //             DrawRegion(analysisArea, analyzedFrame.Scene, Scalar.Crimson);
-            //             Cv2.PutText(analyzedFrame.Scene, counting.ToString(), new Point(areaPoint.OriginalX - 20, areaPoint.OriginalY - 10), HersheyFonts.HersheyPlain, 1.5, Scalar.Crimson);
-            //         }
-            //     }
-            // }
+
+            // Draw specified area for debug
+            foreach (var analysisArea in definition.AnalysisAreas)
+            {
+                var counting = (int)analyzedFrame.GetProperty("counting");
+                if (counting != null)
+                {
+                    var areaPoint = analysisArea.Points[1];
+
+                    if (counting < 10)
+                    {
+                        DrawRegion(analysisArea, analyzedFrame.Scene, Scalar.Lime);
+                        Cv2.PutText(analyzedFrame.Scene, counting.ToString(), new Point(areaPoint.OriginalX - 20, areaPoint.OriginalY - 10), HersheyFonts.HersheyPlain, 1.5, Scalar.Lime);
+                    }
+                    else
+                    {
+                        DrawRegion(analysisArea, analyzedFrame.Scene, Scalar.Crimson);
+                        Cv2.PutText(analyzedFrame.Scene, counting.ToString(), new Point(areaPoint.OriginalX - 20, areaPoint.OriginalY - 10), HersheyFonts.HersheyPlain, 1.5, Scalar.Crimson);
+                    }
+                }
+            }
 
             // 将覆盖图层与原始图像混合
             Cv2.AddWeighted(overlay, alpha, analyzedFrame.Scene, 1.0, 0, analyzedFrame.Scene);
-
-            Cv2.ImShow("test", analyzedFrame.Scene.Resize(new Size(1920, 1080)));
-            Cv2.WaitKey(1);
         }
 
+        private void DisplayRegionAccessResults(Frame analyzedFrame)
+        {
+            foreach (var detectedObject in analyzedFrame.DetectedObjects)
+            {
+                if (!detectedObject.IsUnderAnalysis)
+                {
+                    continue;
+                }
+            
+                var image = analyzedFrame.Scene;
+                var bbox = detectedObject.Bbox;
+
+                Scalar boxColor = new Scalar(0, 255, 0);    // 默认绿色边框
+
+                if (detectedObject.GetProperty("EnterRegion") != null)
+                {
+                    var isEnterRegion = (bool)detectedObject.GetProperty("EnterRegion");
+                    if (isEnterRegion)
+                    {
+                        boxColor = new Scalar(0, 0, 255); // 红色边框
+                        // Display id.
+                        image.PutText($"{detectedObject.Id}(Entering Region)", new Point(bbox.X, bbox.Y - 20), HersheyFonts.HersheyPlain, 2.0, boxColor);
+                    }
+                }
+
+                if (detectedObject.GetProperty("InRegion") != null)
+                {
+                    var isInRegion = (bool)detectedObject.GetProperty("InRegion");
+                    if (isInRegion)
+                    {
+                        boxColor = new Scalar(255, 0, 255); // 紫色边框
+                        // Display id.
+                        image.PutText($"{detectedObject.Id}(In Region)", new Point(bbox.X, bbox.Y - 20), HersheyFonts.HersheyPlain, 2.0, boxColor);
+                    }
+                }
+
+                if (detectedObject.GetProperty("LeaveRegion") != null)
+                {
+                    var isLeaveRegion = (bool)detectedObject.GetProperty("LeaveRegion");
+                    if (isLeaveRegion)
+                    {
+                        boxColor = new Scalar(255, 0, 0); // 蓝色边框
+                        // Display id.
+                        image.PutText($"{detectedObject.Id}(Leaving Region)", new Point(bbox.X, bbox.Y - 20), HersheyFonts.HersheyPlain, 2.0, boxColor);
+                    }
+                }
+
+                // Display box for all objects.
+                image.Rectangle(new Point(bbox.X, bbox.Y), new Point(bbox.X + bbox.Width, bbox.Y + bbox.Height), boxColor);
+            }
+        }
+        
         private static void DrawRegion(NormalizedPolygon region, Mat frame, Scalar color)
         {
             List<Point> points = new List<Point>();

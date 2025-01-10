@@ -11,6 +11,14 @@ using System.Collections.Concurrent;
 
 namespace Handler.RegionAccess.Algorithms
 {
+    public enum ObjectRegionState
+    {
+        Outside,
+        Entering,
+        Inside,
+        Leaving
+    }
+
     public class RegionAccessAlg : ObjectExpiredSubscriber, IAnalysisHandler
     {
         private readonly AnalysisPipeline _pipeline;
@@ -26,7 +34,10 @@ namespace Handler.RegionAccess.Algorithms
 
         private IServiceProvider _serviceProvider;
 
+        private ConcurrentDictionary<string, ObjectRegionState> _objRegionStates = new ConcurrentDictionary<string, ObjectRegionState>();
+
         private ConcurrentDictionary<string, bool> _objLastInRegionStatus;
+
 
         public RegionAccessAlg(AnalysisPipeline pipeline, Dictionary<string, string> preferences)
         {
@@ -53,7 +64,12 @@ namespace Handler.RegionAccess.Algorithms
         {
             var definition = _pipeline.RegionManager.AnalysisDefinition;
 
-            var interestArea = definition.InterestAreas.First(ia => ia.Name == _interestAreaName);
+            var interestArea = definition.InterestAreas.FirstOrDefault(ia => ia.Name == _interestAreaName);
+            if (interestArea == null)
+            {
+                // 处理未找到兴趣区域的情况
+                return new AnalysisResult(false);
+            }
 
             foreach (var detectedObject in frame.DetectedObjects)
             {
@@ -67,42 +83,159 @@ namespace Handler.RegionAccess.Algorithms
                     continue;
                 }
 
+                // 创建对象的四个角点及中心点
+                var topLeft = new NormalizedPoint(frame.Scene.Width, frame.Scene.Height,
+                    detectedObject.TopLeftX, detectedObject.TopLeftY);
+
+                var topRight = new NormalizedPoint(frame.Scene.Width, frame.Scene.Height,
+                    detectedObject.TopLeftX + detectedObject.Width, detectedObject.TopLeftY);
+
+                var bottomRight = new NormalizedPoint(frame.Scene.Width, frame.Scene.Height,
+                    detectedObject.TopLeftX + detectedObject.Width, detectedObject.TopLeftY + detectedObject.Height);
+
+                var bottomLeft = new NormalizedPoint(frame.Scene.Width, frame.Scene.Height,
+                    detectedObject.TopLeftX, detectedObject.TopLeftY + detectedObject.Height);
+
                 var objectCenter = new NormalizedPoint(frame.Scene.Width, frame.Scene.Height,
-                    detectedObject.BottomCenterX, detectedObject.BottomCenterY);
+                    detectedObject.CenterX, detectedObject.CenterY);
 
-                var isObjInArea = interestArea.IsPointInPolygon(objectCenter);
+                // 判断对象是否完全在区域内
+                bool isFullyInside = interestArea.IsPointInPolygon(topLeft) &&
+                                     interestArea.IsPointInPolygon(topRight) &&
+                                     interestArea.IsPointInPolygon(bottomRight) &&
+                                     interestArea.IsPointInPolygon(bottomLeft);
 
-                if (_objLastInRegionStatus.ContainsKey(detectedObject.Id))
+                // 判断对象是否完全在区域外
+                bool isFullyOutside = !interestArea.IsPointInPolygon(topLeft) &&
+                                      !interestArea.IsPointInPolygon(topRight) &&
+                                      !interestArea.IsPointInPolygon(bottomRight) &&
+                                      !interestArea.IsPointInPolygon(bottomLeft);
+
+                // 部分在区域内
+                bool isPartiallyInside = !isFullyInside && !isFullyOutside;
+                
+
+                // 确定对象中心是否在区域内
+                bool isObjInArea = interestArea.IsPointInPolygon(objectCenter);
+
+                // 获取对象的前一状态
+                _objRegionStates.TryGetValue(detectedObject.Id, out var previousState);
+
+                ObjectRegionState currentState = previousState;
+
+                // 状态转换逻辑
+                if (isFullyInside)
                 {
-                    bool lastInRegionStatus = _objLastInRegionStatus[detectedObject.Id];
-
-                    bool isEnterRegion = !lastInRegionStatus && isObjInArea;
-                    bool isInRegion = lastInRegionStatus && isObjInArea;
-                    bool isLeaveRegion = lastInRegionStatus && !isObjInArea;
-
-                    if (isEnterRegion || isInRegion)
+                    switch (previousState)
                     {
+                        case ObjectRegionState.Outside:
+                        case ObjectRegionState.Leaving:
+                            currentState = ObjectRegionState.Entering;
+                            break;
+                        case ObjectRegionState.Entering:
+                        case ObjectRegionState.Inside:
+                            currentState = ObjectRegionState.Inside;
+                            break;
+                        default:
+                            currentState = ObjectRegionState.Inside;
+                            break;
+                    }
+                }
+                else if (isPartiallyInside)
+                {
+                    if (isObjInArea)
+                    {
+                        switch (previousState)
+                        {
+                            case ObjectRegionState.Outside:
+                            case ObjectRegionState.Leaving:
+                                currentState = ObjectRegionState.Entering;
+                                break;
+                            case ObjectRegionState.Entering:
+                                currentState = ObjectRegionState.Entering;
+                                break;
+                            case ObjectRegionState.Inside:
+                                currentState = ObjectRegionState.Inside;
+                                break;
+                            default:
+                                currentState = ObjectRegionState.Entering;
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        switch (previousState)
+                        {
+                            case ObjectRegionState.Inside:
+                            case ObjectRegionState.Entering:
+                                currentState = ObjectRegionState.Leaving;
+                                break;
+                            case ObjectRegionState.Leaving:
+                                currentState = ObjectRegionState.Leaving;
+                                break;
+                            case ObjectRegionState.Outside:
+                                currentState = ObjectRegionState.Outside;
+                                break;
+                            default:
+                                currentState = ObjectRegionState.Leaving;
+                                break;
+                        }
+                    }
+                }
+                else // isFullyOutside
+                {
+                    switch (previousState)
+                    {
+                        case ObjectRegionState.Inside:
+                        case ObjectRegionState.Entering:
+                            currentState = ObjectRegionState.Leaving;
+                            break;
+                        case ObjectRegionState.Leaving:
+                        case ObjectRegionState.Outside:
+                            currentState = ObjectRegionState.Outside;
+                            break;
+                        default:
+                            currentState = ObjectRegionState.Outside;
+                            break;
+                    }
+                }
+
+                // 根据当前状态设置属性
+                switch (currentState)
+                {
+                    case ObjectRegionState.Entering:
                         detectedObject.SetProperty("EnterRegion", true);
+                        detectedObject.SetProperty("InRegion", false);
                         detectedObject.SetProperty("LeaveRegion", false);
-                    }
+                        break;
 
-                    if (isLeaveRegion)
-                    {
+                    case ObjectRegionState.Inside:
                         detectedObject.SetProperty("EnterRegion", false);
+                        detectedObject.SetProperty("InRegion", true);
+                        detectedObject.SetProperty("LeaveRegion", false);
+                        break;
+
+                    case ObjectRegionState.Leaving:
+                        detectedObject.SetProperty("EnterRegion", false);
+                        detectedObject.SetProperty("InRegion", false);
                         detectedObject.SetProperty("LeaveRegion", true);
-                    }
+                        break;
 
-                    _objLastInRegionStatus[detectedObject.Id] = isObjInArea;
-                }
-                else
-                {
-                    _objLastInRegionStatus.TryAdd(detectedObject.Id, isObjInArea);
+                    case ObjectRegionState.Outside:
+                    default:
+                        detectedObject.SetProperty("EnterRegion", false);
+                        detectedObject.SetProperty("InRegion", false);
+                        detectedObject.SetProperty("LeaveRegion", false);
+                        break;
                 }
 
+                // 更新对象的当前状态
+                _objRegionStates[detectedObject.Id] = currentState;
             }
 
             return new AnalysisResult(true);
         }
+
 
         public override void ProcessEvent(ObjectExpiredEvent @event)
         {

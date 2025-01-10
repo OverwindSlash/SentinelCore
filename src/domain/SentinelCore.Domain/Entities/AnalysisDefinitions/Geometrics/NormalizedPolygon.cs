@@ -1,3 +1,5 @@
+using SentinelCore.Domain.Entities.ObjectDetection;
+
 namespace SentinelCore.Domain.Entities.AnalysisDefinitions.Geometrics;
 
 public class NormalizedPolygon : ImageBasedGeometric
@@ -82,6 +84,49 @@ public class NormalizedPolygon : ImageBasedGeometric
         }
 
         _points.Remove(point);
+    }
+
+    public NormalizedPoint GetCenterNormalizedPoint()
+    {
+        if (_points == null || _points.Count == 0)
+        {
+            throw new InvalidOperationException("Invalid normalized polygon.");
+        }
+
+        double area = 0.0;
+        double Cx = 0.0;
+        double Cy = 0.0;
+        int count = _points.Count;
+
+        for (int i = 0; i < count; i++)
+        {
+            int j = (i + 1) % count; // 下一个顶点的索引，环绕回第一个顶点
+            double xi = _points[i].OriginalX;
+            double yi = _points[i].OriginalY;
+            double xj = _points[j].OriginalX;
+            double yj = _points[j].OriginalY;
+
+            double cross = xi * yj - xj * yi;
+            area += cross;
+            Cx += (xi + xj) * cross;
+            Cy += (yi + yj) * cross;
+        }
+
+        area *= 0.5;
+
+        if (Math.Abs(area) < 1e-10)
+        {
+            // 如果面积为零，可能是退化的多边形（例如所有点共线）
+            // 此时，可以返回顶点的平均值作为中心点
+            double avgX = _points.Average(p => p.OriginalX);
+            double avgY = _points.Average(p => p.OriginalY);
+            return new NormalizedPoint(ImageWidth, ImageHeight, (int)avgX, (int)avgY);
+        }
+
+        Cx /= (6.0 * area);
+        Cy /= (6.0 * area);
+
+        return new NormalizedPoint(ImageWidth, ImageHeight, (int)Cx, (int)Cy);
     }
 
     public bool IsPointInPolygon(NormalizedPoint p)

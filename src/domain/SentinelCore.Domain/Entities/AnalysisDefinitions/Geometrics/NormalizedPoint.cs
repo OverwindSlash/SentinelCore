@@ -86,4 +86,11 @@ public class NormalizedPoint : ImageBasedGeometric
         _normalizedX = (double)_originalX / imageWidth;
         _normalizedY = (double)_originalY / imageHeight;
     }
+
+    public double DistanceTo(NormalizedPoint other)
+    {
+        double xDiff = OriginalX - other.OriginalX;
+        double yDiff = OriginalY - other.OriginalY;
+        return Math.Sqrt(xDiff * xDiff + yDiff * yDiff);
+    }
 }

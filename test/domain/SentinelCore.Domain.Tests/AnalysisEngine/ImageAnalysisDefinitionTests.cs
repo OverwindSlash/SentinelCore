@@ -103,10 +103,10 @@ namespace SentinelCore.Domain.Tests.AnalysisEngine
                 // lane.AddPoint(bottomLeft);
 
                 // method 2
-                lane.AddPoint(new NormalizedPoint(width, height, 66, 634));
-                lane.AddPoint(new NormalizedPoint(width, height, 254, 1110));
-                lane.AddPoint(new NormalizedPoint(width, height, 1930, 417));
-                lane.AddPoint(new NormalizedPoint(width, height, 1155, 367));
+                lane.AddPoint(new NormalizedPoint(width, height, 51, 596));
+                lane.AddPoint(new NormalizedPoint(width, height, 278, 1164));
+                lane.AddPoint(new NormalizedPoint(width, height, 2287, 448));
+                lane.AddPoint(new NormalizedPoint(width, height, 1081, 359));
 
                 definition.Lanes.Add(lane);
             }
