@@ -19,6 +19,7 @@
     <ProjectReference Include="..\..\dependency\RegionManager.DefinitionBased\RegionManager.DefinitionBased.csproj" />
     <ProjectReference Include="..\..\dependency\SnapshotManager.InMemory\SnapshotManager.InMemory.csproj" />
     <ProjectReference Include="..\..\dependency\Tracker.Sort\Tracker.Sort.csproj" />
+    <ProjectReference Include="..\..\handler\Handler.FaceRecognition\Handler.FaceRecognition.csproj" />
     <ProjectReference Include="..\..\handler\Handler.MultiOccurrence\Handler.MultiOccurrence.csproj" />
     <ProjectReference Include="..\..\handler\Handler.ObjectDensity\Handler.ObjectDensity.csproj" />
     <ProjectReference Include="..\..\handler\Handler.Ocr\Handler.Ocr.csproj" />

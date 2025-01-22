@@ -1,8 +1,8 @@
 {
   "Pipeline": {
     "DeviceName": "CameraId001",
-    //"Uri": "rtsp://admin:CS%40202304@192.168.1.151:554/Streaming/Channels/101?transportmode=unicast&profile=Profile_1",
-    "Uri": "D:\\video\\Pedestrain\\MOT20-03-raw.mp4",
+    "Uri": "rtsp://admin:CS%40202304@192.168.1.151:554/Streaming/Channels/101?transportmode=unicast&profile=Profile_1",
+    //"Uri": "D:\\video\\Pedestrain\\MOT20-03-raw.mp4",
     "FrameLifetime": 200,
     "EnableDebugDisplay": true
   },
@@ -98,16 +98,16 @@
     //    "ScoreThresh": "0.75"
     //  }
     //},
-    {
-      "AssemblyFile": "Handler.ObjectDensity.dll",
-      "FullQualifiedClassName": "Handler.ObjectDensity.Algorithms.ObjectDensityAlg",
-      "Preferences": {
-        "EventName": "人员聚集",
-        "ObjectType": "person",
-        "CountingRegion": "",
-        "MaxCount": "10"
-      }
-    },
+    //{
+    //  "AssemblyFile": "Handler.ObjectDensity.dll",
+    //  "FullQualifiedClassName": "Handler.ObjectDensity.Algorithms.ObjectDensityAlg",
+    //  "Preferences": {
+    //    "EventName": "人员聚集",
+    //    "ObjectType": "person",
+    //    "CountingRegion": "",
+    //    "MaxCount": "10"
+    //  }
+    //},
     //{
     //  "AssemblyFile": "Handler.RegionAccess.dll",
     //  "FullQualifiedClassName": "Handler.RegionAccess.Algorithms.RegionAccessAlg",
@@ -116,7 +116,16 @@
     //    "InterestAreaName": "alarm region",
     //    "ObjTypes": "boat"
     //  }
-    //}
+    //},
+    {
+      "AssemblyFile": "Handler.FaceRecognition.dll",
+      "FullQualifiedClassName": "Handler.FaceRecognition.Algorithms.FaceRecognitionAlg",
+      "Preferences": {
+        "EventName": "人脸识别",
+        "UseGpu": true,
+        "GpuId": 0
+      }
+    },
   ],
   "MessagePoster": [
     {

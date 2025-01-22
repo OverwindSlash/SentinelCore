@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FaceONNX" Version="4.0.4.2" />
+    <PackageReference Include="FaceONNX.Addons" Version="4.0.4.2" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntime.Gpu.Windows" Version="1.18.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\domain\SentinelCore.Domain\SentinelCore.Domain.csproj" />
+    <ProjectReference Include="..\..\service\SentinelCore.Service\SentinelCore.Service.csproj" />
+  </ItemGroup>
+
+</Project>

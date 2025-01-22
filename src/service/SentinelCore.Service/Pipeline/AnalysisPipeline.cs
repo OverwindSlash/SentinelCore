@@ -266,8 +266,8 @@ namespace SentinelCore.Service.Pipeline
             DisplayDefinitions(analyzedFrame);
 
             // Select one display pattern.
-            // DisplayBasicResults(analyzedFrame);
-            DisplayObjectDensityResults(analyzedFrame);
+            DisplayBasicResults(analyzedFrame);
+            // DisplayObjectDensityResults(analyzedFrame);
             // DisplayRegionAccessResults(analyzedFrame);
 
             Cv2.ImShow("test", analyzedFrame.Scene.Resize(new Size(1920, 1080)));
