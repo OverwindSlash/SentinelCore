@@ -4,6 +4,7 @@ using SentinelCore.Domain.DataStructures;
 using SentinelCore.Domain.Entities.VideoStream;
 using Serilog;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 
 namespace MediaLoader.OpenCV;
 
@@ -57,9 +58,6 @@ public class VideoLoader : IVideoLoader
         _videoCapturePara = new VideoCapturePara(VideoAccelerationType.D3D11, 0);
         _videoSpecs = new VideoSpecs(string.Empty, 0, 0, 0, 0);
 
-        Log.Information($"OpenCV video capture using capture api: {nameof(VideoCaptureAPIs.FFMPEG)} " +
-                        $"acceleration type: {nameof(VideoAccelerationType.D3D11)}.");
-
         _frameBuffer = new ConcurrentBoundedQueue<Frame>(bufferSize);
     }
 
@@ -67,7 +65,8 @@ public class VideoLoader : IVideoLoader
     {
         Close();
 
-        _capture = new VideoCapture(uri, _videoCaptureApIs, _videoCapturePara);
+        //_capture = new VideoCapture(uri, _videoCaptureApIs, _videoCapturePara);
+        _capture = new VideoCapture(uri);
         if (!_capture.IsOpened())
         {
             string message = $"Stream source '{uri}' can not be opened.";
@@ -75,6 +74,17 @@ public class VideoLoader : IVideoLoader
             throw new ApplicationException(message);
         }
 
+        double backendValue = _capture.Get(VideoCaptureProperties.Backend);
+        var backend = (VideoCaptureAPIs)backendValue;
+
+        double accelTypeValue = _capture.Get(VideoCaptureProperties.HwAcceleration);
+        var videoAccelerationType = (VideoAccelerationType)accelTypeValue;
+
+        double deviceIdValue = _capture.Get(VideoCaptureProperties.HwDevice);
+
+        Log.Information($"OpenCV video capture using capture api: {backend.ToString()}, " +
+                        $"acceleration type: {videoAccelerationType.ToString()}.");
+        
         _uri = uri;
         _videoSpecs = new VideoSpecs(_uri, _capture.FrameWidth, _capture.FrameHeight,
             _capture.Fps, _capture.FrameCount);
