@@ -1,6 +1,7 @@
 ﻿using Detector.YoloV5Onnx.Utils;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
+using OpenCvSharp;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
@@ -33,26 +34,7 @@ namespace Detector.YoloV5Onnx
             _modelMetadata = _inferenceSession.ModelMetadata;
         }
 
-        /*public IReadOnlyList<YoloPrediction> Predict(Mat image, float targetConfidence, List<string> targetTypes = null)
-        {
-            var imageSize = new Size(image.Width, image.Height);
-
-            List<NamedOnnxValue> inputs = new List<NamedOnnxValue>
-            {
-                NamedOnnxValue.CreateFromTensor(_yoloModel.Input, ExtractPixels(image))
-            };
-
-            var onnxOutput = _inferenceSession.Run(inputs, _yoloModel.Outputs);
-            List<YoloPrediction> predictions = Suppress(ParseOutput(
-                onnxOutput.First().Value as DenseTensor<float>, imageSize,
-                targetConfidence, targetTypes));
-
-            onnxOutput.Dispose();
-
-            return predictions;
-        }*/
-
-        public IReadOnlyList<YoloPrediction> Predict(Bitmap image, float targetConfidence, List<string> targetTypes = null)
+        public IReadOnlyList<YoloPrediction> Predict(Mat image, float targetConfidence, List<string> targetTypes = null)
         {
             var imageSize = new Size(image.Width, image.Height);
 
@@ -71,9 +53,30 @@ namespace Detector.YoloV5Onnx
             return predictions;
         }
 
-        /*private Tensor<float> ExtractPixels(Mat image)
+        /*public IReadOnlyList<YoloPrediction> Predict(Bitmap image, float targetConfidence, List<string> targetTypes = null)
         {
-            Mat resizedImg = image.Resize(new OpenCvSharp.Size(_yoloModel.Width, _yoloModel.Height));
+            var imageSize = new Size(image.Width, image.Height);
+
+            List<NamedOnnxValue> inputs = new List<NamedOnnxValue>
+            {
+                NamedOnnxValue.CreateFromTensor(_yoloModel.Input, ExtractPixels(image))
+            };
+
+            var onnxOutput = _inferenceSession.Run(inputs, _yoloModel.Outputs);
+            List<YoloPrediction> predictions = Suppress(ParseOutput(
+                onnxOutput.First().Value as DenseTensor<float>, imageSize,
+                targetConfidence, targetTypes));
+
+            onnxOutput.Dispose();
+
+            return predictions;
+        }*/
+
+        private Tensor<float> ExtractPixels(Mat image)
+        {
+            //Mat resizedImg = image.Resize(new OpenCvSharp.Size(_yoloModel.Width, _yoloModel.Height));
+            Mat resizedImg = ResizeMat(image);
+
             resizedImg = resizedImg.CvtColor(ColorConversionCodes.BGR2RGB);
 
             int channels = resizedImg.Channels();
@@ -108,17 +111,54 @@ namespace Detector.YoloV5Onnx
                         int pixelOffset = w * channels;
                         int tensorIndex = rowOffset + w;
 
-                        bTensorSpan[tensorIndex] = row[pixelOffset] / 255.0f;        // B通道
-                        gTensorSpan[tensorIndex] = row[pixelOffset + 1] / 255.0f;    // G通道
-                        rTensorSpan[tensorIndex] = row[pixelOffset + 2] / 255.0f;    // R通道
+                        bTensorSpan[tensorIndex] = row[pixelOffset + 2] / 255.0f;   // B通道
+                        gTensorSpan[tensorIndex] = row[pixelOffset + 1] / 255.0f;   // G通道
+                        rTensorSpan[tensorIndex] = row[pixelOffset ] / 255.0f;      // R通道
                     }
                 }
             }
 
             return tensor;
-        }*/
+        }
 
-        private Tensor<float> ExtractPixels(Bitmap image)
+        private Mat ResizeMat(Mat image)
+        {
+            if (image.Width == _yoloModel.Width || image.Height == _yoloModel.Height)
+            {
+                return image;
+            }
+            
+            float _resizeScales;
+            Mat resizedImg;
+
+            if (image.Cols >= image.Rows)
+            {
+                _resizeScales = (float)image.Cols / _yoloModel.Width;
+                resizedImg = image.Resize(new OpenCvSharp.Size(_yoloModel.Width, (int)(image.Rows / _resizeScales)));
+            }
+            else
+            {
+                _resizeScales = (float)image.Rows / _yoloModel.Height;
+                resizedImg = image.Resize(new OpenCvSharp.Size((int)(image.Cols / _resizeScales), _yoloModel.Height));
+            }
+
+            //resizedImg.SaveImage("before_fill.jpg");
+
+            int top = (_yoloModel.Height - resizedImg.Height) / 2;
+            int bottom = _yoloModel.Height - resizedImg.Height - top;
+            int left = (_yoloModel.Width - resizedImg.Width) / 2;
+            int right = _yoloModel.Width - resizedImg.Width - left;
+
+            // 创建一个填充黑边的新图像
+            Cv2.CopyMakeBorder(
+                resizedImg, resizedImg, top, bottom, left, right, BorderTypes.Constant, new Scalar(0, 0, 0));
+
+            //resizedImg.SaveImage("after_fill.jpg");
+
+            return resizedImg;
+        }
+        
+        /*private Tensor<float> ExtractPixels(Bitmap image)
         {
             Bitmap resizedImg = ResizeBitmap(image);
 
@@ -191,7 +231,7 @@ namespace Detector.YoloV5Onnx
             }
 
             return output;
-        }
+        }*/
 
         private YoloPrediction[] ParseOutput(DenseTensor<float> output, Size imageSize, float targetConfidence, List<string> targetTypes)
         {
