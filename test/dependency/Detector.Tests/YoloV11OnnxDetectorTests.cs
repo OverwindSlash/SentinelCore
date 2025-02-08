@@ -176,7 +176,7 @@ namespace Detector.Tests
             using var mat = new Mat("Images/pl_000001.jpg", ImreadModes.Color);
 
             var stopwatch = Stopwatch.StartNew();
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 20; i++)
             {
                 var items = _detector.Detect(mat, 0.6F).ToList();
             }

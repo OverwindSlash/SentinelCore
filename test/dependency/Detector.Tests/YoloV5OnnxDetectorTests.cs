@@ -48,7 +48,7 @@ namespace Detector.Tests
 
             //ShowResultImage(items, mat);
 
-            Assert.That(items.Count, Is.EqualTo(18));
+            Assert.That(items.Count, Is.EqualTo(19));
         }
 
         private static void ShowResultImage(List<BoundingBox> items, Mat mat)
@@ -77,7 +77,7 @@ namespace Detector.Tests
 
             //ShowResultImage(items, mat);
 
-            Assert.That(items.Count, Is.EqualTo(18));
+            Assert.That(items.Count, Is.EqualTo(19));
         }
 
         [Test]
@@ -176,7 +176,7 @@ namespace Detector.Tests
             using var mat = new Mat("Images/pl_000001.jpg", ImreadModes.Color);
 
             var stopwatch = Stopwatch.StartNew();
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 20; i++)
             {
                 var items = _detector.Detect(mat, 0.6F).ToList();
             }

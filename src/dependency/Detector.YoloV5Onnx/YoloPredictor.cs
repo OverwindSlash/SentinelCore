@@ -53,25 +53,6 @@ namespace Detector.YoloV5Onnx
             return predictions;
         }
 
-        /*public IReadOnlyList<YoloPrediction> Predict(Bitmap image, float targetConfidence, List<string> targetTypes = null)
-        {
-            var imageSize = new Size(image.Width, image.Height);
-
-            List<NamedOnnxValue> inputs = new List<NamedOnnxValue>
-            {
-                NamedOnnxValue.CreateFromTensor(_yoloModel.Input, ExtractPixels(image))
-            };
-
-            var onnxOutput = _inferenceSession.Run(inputs, _yoloModel.Outputs);
-            List<YoloPrediction> predictions = Suppress(ParseOutput(
-                onnxOutput.First().Value as DenseTensor<float>, imageSize,
-                targetConfidence, targetTypes));
-
-            onnxOutput.Dispose();
-
-            return predictions;
-        }*/
-
         private Tensor<float> ExtractPixels(Mat image)
         {
             //Mat resizedImg = image.Resize(new OpenCvSharp.Size(_yoloModel.Width, _yoloModel.Height));
@@ -158,81 +139,6 @@ namespace Detector.YoloV5Onnx
             return resizedImg;
         }
         
-        /*private Tensor<float> ExtractPixels(Bitmap image)
-        {
-            Bitmap resizedImg = ResizeBitmap(image);
-
-            Rectangle rectangle = new Rectangle(0, 0, resizedImg.Width, resizedImg.Height);
-            BitmapData bitmapData = resizedImg.LockBits(rectangle, ImageLockMode.ReadOnly, resizedImg.PixelFormat);
-            int width = bitmapData.Width;
-            int height = bitmapData.Height;
-            int bytesPerPixel = Image.GetPixelFormatSize(resizedImg.PixelFormat) / 8;
-
-            DenseTensor<float> tensor = new DenseTensor<float>(new[] { _yoloModel.BatchSize, _yoloModel.Channels, _yoloModel.Height, _yoloModel.Width });
-
-            unsafe
-            {
-                Span<float> rTensorSpan = tensor.Buffer.Span.Slice(0, height * width);
-                Span<float> gTensorSpan = tensor.Buffer.Span.Slice(height * width, height * width);
-                Span<float> bTensorSpan = tensor.Buffer.Span.Slice(height * width * 2, height * width);
-
-                byte* scan0 = (byte*)bitmapData.Scan0;
-                int stride = bitmapData.Stride;
-
-                for (int y = 0; y < height; y++)
-                {
-                    byte* row = scan0 + (y * stride);
-                    int rowOffset = y * width;
-
-                    for (int x = 0; x < width; x++)
-                    {
-                        int bIndex = x * bytesPerPixel;
-                        int point = rowOffset + x;
-
-                        rTensorSpan[point] = row[bIndex + 2] / 255.0f; //R
-                        gTensorSpan[point] = row[bIndex + 1] / 255.0f; //G
-                        bTensorSpan[point] = row[bIndex] / 255.0f; //B
-                    }
-                }
-
-                resizedImg.UnlockBits(bitmapData);
-            }
-
-            return tensor;
-        }
-
-        private Bitmap ResizeBitmap(Bitmap image)
-        {
-            if (image.Width == _yoloModel.Width || image.Height == _yoloModel.Height)
-            {
-                return image;
-            }
-
-            PixelFormat format = image.PixelFormat;
-
-            Bitmap output = new Bitmap(_yoloModel.Width, _yoloModel.Height, format);
-
-            (float xRatio, float yRatio) = (_yoloModel.Width / (float)image.Width, _yoloModel.Height / (float)image.Height);
-            float ratio = float.Min(xRatio, yRatio);
-            (int targetWidth, int targetHeight) = ((int)(image.Width * ratio), (int)(image.Height * ratio));
-            (int x, int y) = ((_yoloModel.Width / 2) - (targetWidth / 2), (_yoloModel.Height / 2) - (targetHeight / 2));
-
-            Rectangle roi = new Rectangle(x, y, targetWidth, targetHeight);
-
-            using (Graphics graphics = Graphics.FromImage(output))
-            {
-                graphics.Clear(Color.FromArgb(0, 0, 0, 0));
-
-                graphics.SmoothingMode = SmoothingMode.None;
-                graphics.InterpolationMode = InterpolationMode.Default;
-                graphics.PixelOffsetMode = PixelOffsetMode.Half;
-
-                graphics.DrawImage(image, roi);
-            }
-
-            return output;
-        }*/
-
         private YoloPrediction[] ParseOutput(DenseTensor<float> output, Size imageSize, float targetConfidence, List<string> targetTypes)
         {
             unsafe

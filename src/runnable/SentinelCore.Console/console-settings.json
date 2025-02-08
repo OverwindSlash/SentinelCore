@@ -12,7 +12,7 @@
     "AssemblyFile": "MediaLoader.OpenCV.dll",
     "FullQualifiedClassName": "MediaLoader.OpenCV.VideoLoader",
     "BufferSize": 300,
-    "VideoStride": 4,
+    "VideoStride": 2,
     "Preferences": {
     }
   },

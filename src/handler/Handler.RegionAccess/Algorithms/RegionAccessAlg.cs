@@ -8,6 +8,7 @@ using SentinelCore.Domain.Entities.VideoStream;
 using SentinelCore.Domain.Events.AnalysisEngine;
 using SentinelCore.Service.Pipeline;
 using System.Collections.Concurrent;
+using Serilog;
 
 namespace Handler.RegionAccess.Algorithms
 {
@@ -207,18 +208,36 @@ namespace Handler.RegionAccess.Algorithms
                         detectedObject.SetProperty("EnterRegion", true);
                         detectedObject.SetProperty("InRegion", false);
                         detectedObject.SetProperty("LeaveRegion", false);
+
+                        if (currentState != previousState)
+                        {
+                            Log.Information($"{detectedObject.Id} is ENTERING region {_interestAreaName}");
+                        }
+                        
                         break;
 
                     case ObjectRegionState.Inside:
                         detectedObject.SetProperty("EnterRegion", false);
                         detectedObject.SetProperty("InRegion", true);
                         detectedObject.SetProperty("LeaveRegion", false);
+
+                        if (currentState != previousState)
+                        {
+                            Log.Information($"{detectedObject.Id} is IN region {_interestAreaName}");
+                        }
+                        
                         break;
 
                     case ObjectRegionState.Leaving:
                         detectedObject.SetProperty("EnterRegion", false);
                         detectedObject.SetProperty("InRegion", false);
                         detectedObject.SetProperty("LeaveRegion", true);
+
+                        if (currentState != previousState)
+                        {
+                            Log.Information($"{detectedObject.Id} is LEAVING region {_interestAreaName}");
+                        }
+
                         break;
 
                     case ObjectRegionState.Outside:

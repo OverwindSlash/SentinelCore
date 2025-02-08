@@ -95,7 +95,6 @@ namespace Detector.YoloV5Onnx
 
         public List<BoundingBox> Detect(Mat image, float thresh = 0.5f)
         {
-            //YoloPrediction[] detectedObjects = _predictor.Predict(image.ToBitmap(), thresh, _targetTypes).ToArray();
             YoloPrediction[] detectedObjects = _predictor.Predict(image, thresh).ToArray();
 
             return GenerateBoundingBoxes(detectedObjects);
@@ -128,9 +127,6 @@ namespace Detector.YoloV5Onnx
         {
             using MemoryStream stream = new MemoryStream(imageData);
 
-            // Bitmap bitmap = new Bitmap(stream);
-            // YoloPrediction[] detectedObjects = _predictor.Predict(bitmap, thresh, _targetTypes).ToArray();
-
             Mat image = Mat.FromStream(stream, ImreadModes.Color);
             YoloPrediction[] detectedObjects = _predictor.Predict(image, thresh, _targetTypes).ToArray();
 
@@ -139,9 +135,6 @@ namespace Detector.YoloV5Onnx
 
         public List<BoundingBox> Detect(string imageFile, float thresh = 0.5f)
         {
-            // Bitmap bitmap = new Bitmap(imageFile);
-            // YoloPrediction[] detectedObjects = _predictor.Predict(bitmap, thresh, _targetTypes).ToArray();
-
             Mat image = Cv2.ImRead(imageFile, ImreadModes.Color);
             YoloPrediction[] detectedObjects = _predictor.Predict(image, thresh, _targetTypes).ToArray();
 
