@@ -74,30 +74,28 @@ namespace MediaLoader.FFMpeg
         {
             Close();
 
-            // AVDictionary* options = null;
-            //
-            // // 设置传输协议为 TCP
-            // ffmpeg.av_dict_set(&options, "rtsp_transport", "tcp", 0);
-            //
-            // // 设置最大延迟为 0.5 秒（500000 微秒）
+            AVDictionary* options = null;
+            
+            // 设置传输协议为 TCP
+            ffmpeg.av_dict_set(&options, "rtsp_transport", "tcp", 0);
+            
+            // 设置最大延迟为 0.5 秒（500000 微秒）
             // ffmpeg.av_dict_set(&options, "max_delay", "500000", 0);
             //
-            // // 设置缓冲区大小为 8MB
+            // 设置缓冲区大小为 8MB
             // ffmpeg.av_dict_set(&options, "buffer_size", "8388608", 0);
             //
-            // // 设置分析时长为 1 秒，减少打开文件的延迟
+            // 设置分析时长为 1 秒，减少打开文件的延迟
             // ffmpeg.av_dict_set(&options, "analyzeduration", "1000000", 0);
             // ffmpeg.av_dict_set(&options, "probesize", "1000000", 0);
             //
-            // // 启用自动重连
+            // 启用自动重连
             // ffmpeg.av_dict_set(&options, "reconnect", "1", 0);
             //
-            // // 设置重连尝试次数
+            // 设置重连尝试次数
             // ffmpeg.av_dict_set(&options, "reconnect_streamed", "1", 0);
             // ffmpeg.av_dict_set(&options, "reconnect_delay_max", "10", 0); // 最长重连延迟 10 秒
-            //
-            // ffmpeg.av_dict_free(&options);
-
+            
             // Open video file or stream
             _formatContext = ffmpeg.avformat_alloc_context();
             fixed (AVFormatContext** pFormatContext = &_formatContext)
@@ -109,6 +107,8 @@ namespace MediaLoader.FFMpeg
                     throw new ApplicationException(message);
                 }
             }
+
+            ffmpeg.av_dict_free(&options);
 
             // Retrieve stream information
             if (ffmpeg.avformat_find_stream_info(_formatContext, null) < 0)
