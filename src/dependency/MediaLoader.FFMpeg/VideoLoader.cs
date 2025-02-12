@@ -64,7 +64,13 @@ namespace MediaLoader.FFMpeg
             _videoSpecs = new VideoSpecs(string.Empty, 0, 0, 0, 0);
             _frameBuffer = new ConcurrentBoundedQueue<Frame>(bufferSize);
 
-            DynamicallyLoadedBindings.LibrariesPath = @"runtimes\win-x64\ffmpeg";
+            string libPath = @"runtimes\win-x64\ffmpeg";
+            if (preferences.TryGetValue("LibrariesPath", out var value))
+            {
+                libPath = value;
+            }
+
+            DynamicallyLoadedBindings.LibrariesPath = libPath;
             DynamicallyLoadedBindings.Initialize();
 
             _useHardwareAcceleration = true;

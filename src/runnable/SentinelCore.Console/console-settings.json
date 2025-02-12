@@ -7,13 +7,15 @@
     "EnableDebugDisplay": true
   },
   "MediaLoader": {
-    //"AssemblyFile": "MediaLoader.FFMpeg.dll",
-    //"FullQualifiedClassName": "MediaLoader.FFMpeg.VideoLoader",
-    "AssemblyFile": "MediaLoader.OpenCV.dll",
-    "FullQualifiedClassName": "MediaLoader.OpenCV.VideoLoader",
+    "AssemblyFile": "MediaLoader.FFMpeg.dll",
+    "FullQualifiedClassName": "MediaLoader.FFMpeg.VideoLoader",
+    //"AssemblyFile": "MediaLoader.OpenCV.dll",
+    //"FullQualifiedClassName": "MediaLoader.OpenCV.VideoLoader",
     "BufferSize": 300,
     "VideoStride": 2,
     "Preferences": {
+      "LibrariesPath": "runtimes\\win-x64\\ffmpeg"
+      //"LibrariesPath": "/usr/lib/x86_64-linux-gnu"
     }
   },
   "Detector": {

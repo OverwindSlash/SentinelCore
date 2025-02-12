@@ -10,11 +10,19 @@ namespace MediaLoader.Tests
         private const string WanRtspVideoUrl = @"rtsp://stream.strba.sk:1935/strba/VYHLAD_JAZERO.stream";
         private string _rtspVideoUrl = LanRtspVideoUrl;
 
+        private Dictionary<string, string> preferences = new Dictionary<string, string>();
+
+        public FFMpegVideoLoaderTests()
+        {
+            preferences.Add("LibrariesPath", "runtimes\\win-x64\\ffmpeg");
+            //preferences.Add("LibrariesPath", "/usr/lib/x86_64-linux-gnu");
+        }
+
         [Test]
         public void Test_ProvideAndConsume_InDifferentThread()
         {
             int bufferSize = 100;
-            using var loader = new VideoLoader("tempId", bufferSize);
+            using var loader = new VideoLoader("tempId", bufferSize, preferences);
             loader.Open(LocalVideoPath);
 
             // Provider
@@ -49,7 +57,7 @@ namespace MediaLoader.Tests
         public void Test_ProvideAndConsumeAsync_InDifferentThread()
         {
             int bufferSize = 100;
-            using var loader = new VideoLoader("tempId", bufferSize);
+            using var loader = new VideoLoader("tempId", bufferSize, preferences);
             loader.Open(LocalVideoPath);
 
             // Provider
@@ -84,7 +92,7 @@ namespace MediaLoader.Tests
         public void Test_Open_VideoFile()
         {
             int bufferSize = 100;
-            using var loader = new VideoLoader("tempId", bufferSize);
+            using var loader = new VideoLoader("tempId", bufferSize, preferences);
             loader.Open(LocalVideoPath);
 
             var specs = loader.Specs;
@@ -100,7 +108,7 @@ namespace MediaLoader.Tests
         public async Task Test_Play_VideoFile_QueueNotFull()
         {
             int bufferSize = 50;
-            using var loader = new VideoLoader("tempId", bufferSize);
+            using var loader = new VideoLoader("tempId", bufferSize, preferences);
             loader.Open(LocalVideoPath);
 
             int stride = 1;
@@ -131,7 +139,7 @@ namespace MediaLoader.Tests
         public async Task Test_Play_VideoFile_QueueFull()
         {
             int bufferSize = 50;
-            using var loader = new VideoLoader("tempId", bufferSize);
+            using var loader = new VideoLoader("tempId", bufferSize, preferences);
             loader.Open(LocalVideoPath);
 
             int stride = 1;
@@ -163,7 +171,7 @@ namespace MediaLoader.Tests
         public async Task Test_Play_VideoFile_QueueFull_PlusOne()
         {
             int bufferSize = 50;
-            using var loader = new VideoLoader("tempId", bufferSize);
+            using var loader = new VideoLoader("tempId", bufferSize, preferences);
             loader.Open(LocalVideoPath);
 
             int stride = 1;
@@ -195,7 +203,7 @@ namespace MediaLoader.Tests
         public async Task Test_Play_VideoFile_QueueFullTwice()
         {
             int bufferSize = 50;
-            using var loader = new VideoLoader("tempId", bufferSize);
+            using var loader = new VideoLoader("tempId", bufferSize, preferences);
             loader.Open(LocalVideoPath);
 
             int stride = 1;
@@ -227,7 +235,7 @@ namespace MediaLoader.Tests
         public async Task Test_Play_VideoFile_QueueFullTwice_PlusOne()
         {
             int bufferSize = 50;
-            using var loader = new VideoLoader("tempId", bufferSize);
+            using var loader = new VideoLoader("tempId", bufferSize, preferences);
             loader.Open(LocalVideoPath);
 
             int stride = 1;
@@ -259,7 +267,7 @@ namespace MediaLoader.Tests
         public async Task Test_Play_VideoFile_Stride2()
         {
             int bufferSize = 50;
-            using var loader = new VideoLoader("tempId", bufferSize);
+            using var loader = new VideoLoader("tempId", bufferSize, preferences);
             loader.Open(LocalVideoPath);
 
             int stride = 2;
@@ -294,7 +302,7 @@ namespace MediaLoader.Tests
         public async Task Test_Play_RtspStream()
         {
             int bufferSize = 50;
-            using var loader = new VideoLoader("tempId", bufferSize);
+            using var loader = new VideoLoader("tempId", bufferSize, preferences);
             loader.Open(_rtspVideoUrl);
 
             loader.Play(1, true, bufferSize);
@@ -312,7 +320,7 @@ namespace MediaLoader.Tests
         public async Task Test_Play_VideoFile_QueueFull_CheckTimeOffset()
         {
             int bufferSize = 50;
-            using var loader = new VideoLoader("tempId", bufferSize);
+            using var loader = new VideoLoader("tempId", bufferSize, preferences);
             loader.Open(LocalVideoPath);
 
             var videoStartTimeStamp = DateTime.Now;
@@ -349,7 +357,7 @@ namespace MediaLoader.Tests
             int intervalThresh = 3;
 
             int bufferSize = 50;
-            using var loader = new VideoLoader("tempId", bufferSize);
+            using var loader = new VideoLoader("tempId", bufferSize, preferences);
             loader.Open(_rtspVideoUrl);
 
             var videoStartTimeStamp = DateTime.Now;
