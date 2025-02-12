@@ -32,17 +32,33 @@ namespace Detector.YoloV11Onnx
                 // Use default values.
             }
 
-            _inferenceSession = new InferenceSession(model, sessionOptions ?? new SessionOptions());
+            SessionOptions defaultSessionOptions = new SessionOptions();
+            // defaultSessionOptions.ExecutionMode = ExecutionMode.ORT_PARALLEL; // 启用并行执行
+            // defaultSessionOptions.EnableCpuMemArena = true; // 启用 CPU 内存池
+            // defaultSessionOptions.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL; // 启用所有图优化
+
+            _inferenceSession = new InferenceSession(model, sessionOptions ?? defaultSessionOptions);
             _modelMetadata = _inferenceSession.ModelMetadata;
         }
 
         public IReadOnlyList<YoloPrediction> Predict(Mat image, float targetConfidence, List<string> targetTypes = null)
         {
+            //Stopwatch preProcessSw = Stopwatch.StartNew();
             var processedImage = PreProcess(image);
+            // preProcessSw.Stop();
+            // Console.WriteLine($"[YOLO_V11]: PreProcess {preProcessSw.Elapsed.TotalMilliseconds}ms.");
 
+            //Stopwatch blob2TensorSw = Stopwatch.StartNew();
             var inputTensor = BlobFromImage(processedImage);
+            // blob2TensorSw.Stop();
+            // Console.WriteLine($"[YOLO_V11]: BlobFromImage {blob2TensorSw.Elapsed.TotalMilliseconds}ms.");
 
-            return ProcessTensor(inputTensor, targetConfidence, targetTypes);
+            //Stopwatch processTensorSw = Stopwatch.StartNew();
+            var result = ProcessTensor(inputTensor, targetConfidence, targetTypes);
+            // processTensorSw.Stop();
+            // Console.WriteLine($"[YOLO_V11]: ProcessTensor {processTensorSw.Elapsed.TotalMilliseconds}ms.");
+
+            return result;
         }
 
         private Mat PreProcess(Mat originalImage)
@@ -155,17 +171,17 @@ namespace Detector.YoloV11Onnx
             };
 
             // 执行推理
-            //Stopwatch inferenceSw = Stopwatch.StartNew();
+            Stopwatch inferenceSw = Stopwatch.StartNew();
             var outputTensor = _inferenceSession.Run(inputs);
-            //inferenceSw.Stop();
-            //Console.WriteLine($"[YOLO_V11]: Inference {inferenceSw.Elapsed.TotalMilliseconds}ms.");
+            inferenceSw.Stop();
+            Console.WriteLine($"[YOLO_V11]: Inference {inferenceSw.Elapsed.TotalMilliseconds}ms.");
 
             // 获取输出张量数据
-            //Stopwatch toArraySw = Stopwatch.StartNew();
+            Stopwatch toArraySw = Stopwatch.StartNew();
             DenseTensor<float> resultTensor = (DenseTensor<float>)outputTensor.First().AsTensor<float>();
             var resultArray = resultTensor.ToArray();
-            //toArraySw.Stop();
-            //Console.WriteLine($"[YOLO_V11]: ToArray {toArraySw.Elapsed.TotalMilliseconds}ms.");
+            toArraySw.Stop();
+            Console.WriteLine($"[YOLO_V11]: ToArray {toArraySw.Elapsed.TotalMilliseconds}ms.");
 
             if (_yoloModel.ModelType == ModelType.YOLO_DETECT_V8)
             {
@@ -176,15 +192,15 @@ namespace Detector.YoloV11Onnx
                 int signalResultNum = resultTensor.Dimensions[1]; // 类别数 + 坐标数
                 int strideNum = resultTensor.Dimensions[2]; // 检测步长
 
-                //Stopwatch stopwatchRawData = Stopwatch.StartNew();
+                Stopwatch stopwatchRawData = Stopwatch.StartNew();
                 Mat rawData = new Mat(signalResultNum, strideNum, MatType.CV_32F);
                 rawData.SetArray(resultArray);
                 rawData = rawData.T(); // 转置数据以符合输出格式
                 rawData.GetArray<float>(out var data);
-                //stopwatchRawData.Stop();
-                //Console.WriteLine($"[YOLO_V11]: Permute {stopwatchRawData.Elapsed.TotalMilliseconds}ms.");
+                stopwatchRawData.Stop();
+                Console.WriteLine($"[YOLO_V11]: Permute {stopwatchRawData.Elapsed.TotalMilliseconds}ms.");
 
-                //Stopwatch parseYoloSw = Stopwatch.StartNew();
+                Stopwatch parseYoloSw = Stopwatch.StartNew();
                 Span<float> dataSpan = data; // 将 data 转换为 Span<float>
                 for (int i = 0; i < strideNum; ++i)
                 {
@@ -237,11 +253,11 @@ namespace Detector.YoloV11Onnx
                     // 使用 Span 切片操作移动到下一个检测项，而无需创建新数组
                     dataSpan = dataSpan.Slice(signalResultNum);
                 }
-                //parseYoloSw.Stop();
-                //Console.WriteLine($"[YOLO_V11]: ParseYolo {parseYoloSw.Elapsed.TotalMilliseconds}ms.");
+                parseYoloSw.Stop();
+                Console.WriteLine($"[YOLO_V11]: ParseYolo {parseYoloSw.Elapsed.TotalMilliseconds}ms.");
 
                 // 非极大值抑制
-                //Stopwatch nmsSw = Stopwatch.StartNew();
+                Stopwatch nmsSw = Stopwatch.StartNew();
                 CvDnn.NMSBoxes(boxes, confidences,targetConfidence, _yoloModel.Overlap, 
                     out var nmsResult);
 
@@ -262,8 +278,8 @@ namespace Detector.YoloV11Onnx
                     };
                     yoloPredictions.Add(prediction);
                 }
-                //nmsSw.Stop();
-                //Console.WriteLine($"[YOLO_V11]: NMS {nmsSw.Elapsed.TotalMilliseconds}ms.");
+                nmsSw.Stop();
+                Console.WriteLine($"[YOLO_V11]: NMS {nmsSw.Elapsed.TotalMilliseconds}ms.");
 
                 return yoloPredictions;
             }

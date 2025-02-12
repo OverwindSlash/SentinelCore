@@ -265,9 +265,9 @@ namespace SentinelCore.Service.Pipeline
             DisplayDefinitions(analyzedFrame);
 
             // Select one display pattern.
-            // DisplayBasicResults(analyzedFrame);
+            DisplayBasicResults(analyzedFrame);
             // DisplayObjectDensityResults(analyzedFrame);
-            DisplayRegionAccessResults(analyzedFrame);
+            // DisplayRegionAccessResults(analyzedFrame);
 
             Cv2.ImShow("test", analyzedFrame.Scene.Resize(new Size(1920, 1080)));
             Cv2.WaitKey(1);
@@ -292,12 +292,12 @@ namespace SentinelCore.Service.Pipeline
             //     DrawRegion(lane, analyzedFrame.Scene, Scalar.Yellow);
             // }
             //
-            foreach (var interestArea in definition.InterestAreas)
-            {
-                DrawRegion(interestArea, analyzedFrame.Scene, Scalar.Yellow);
-                var centerPoint = interestArea.GetCenterNormalizedPoint();
-                analyzedFrame.Scene.PutText(interestArea.Name, new Point(centerPoint.OriginalX - 30, centerPoint.OriginalY - 30), HersheyFonts.HersheyPlain, 2.0, Scalar.Yellow);
-            }
+            //foreach (var interestArea in definition.InterestAreas)
+            //{
+            //    DrawRegion(interestArea, analyzedFrame.Scene, Scalar.Yellow);
+            //    var centerPoint = interestArea.GetCenterNormalizedPoint();
+            //    analyzedFrame.Scene.PutText(interestArea.Name, new Point(centerPoint.OriginalX - 30, centerPoint.OriginalY - 30), HersheyFonts.HersheyPlain, 2.0, Scalar.Yellow);
+            //}
             //
             // foreach (var countLine in definition.CountLines)
             // {

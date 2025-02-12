@@ -25,7 +25,7 @@ namespace Detector.Tests
                 {"target_types", ""}
             });
 
-            // // Avoid first time-consuming call in test cases.
+            // Avoid first time-consuming call in test cases.
             using var mat = new Mat("Images/Traffic_001.jpg", ImreadModes.Color);
             _detector.Detect(mat, 0.3F);
         }

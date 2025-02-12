@@ -2,15 +2,15 @@
   "Pipeline": {
     "DeviceName": "CameraId001",
     //"Uri": "rtsp://admin:CS%40202304@192.168.1.151:554/Streaming/Channels/101?transportmode=unicast&profile=Profile_1",
-    "Uri": "D:\\Video\\Ship\\suzhou.ts",
+    "Uri": "D:\\Video\\Smuggling\\01.mp4",
     "FrameLifetime": 200,
     "EnableDebugDisplay": true
   },
   "MediaLoader": {
-    "AssemblyFile": "MediaLoader.FFMpeg.dll",
-    "FullQualifiedClassName": "MediaLoader.FFMpeg.VideoLoader",
-    //"AssemblyFile": "MediaLoader.OpenCV.dll",
-    //"FullQualifiedClassName": "MediaLoader.OpenCV.VideoLoader",
+    //"AssemblyFile": "MediaLoader.FFMpeg.dll",
+    //"FullQualifiedClassName": "MediaLoader.FFMpeg.VideoLoader",
+    "AssemblyFile": "MediaLoader.OpenCV.dll",
+    "FullQualifiedClassName": "MediaLoader.OpenCV.VideoLoader",
     "BufferSize": 300,
     "VideoStride": 2,
     "Preferences": {
@@ -21,16 +21,16 @@
   "Detector": {
     "AssemblyFile": "Detector.YoloV5Onnx.dll",
     "FullQualifiedClassName": "Detector.YoloV5Onnx.YoloOnnxDetector",
-    "ModelPath": "Models/yolov5m.onnx",
-    "ModelConfig": "Models/yolov5.json",
     //"AssemblyFile": "Detector.YoloV11Onnx.dll",
     //"FullQualifiedClassName": "Detector.YoloV11Onnx.YoloOnnxDetector",
+    "ModelPath": "Models/yolov5m.onnx",
+    "ModelConfig": "Models/yolov5.json",
     //"ModelPath": "Models/yolo11m.onnx",
     //"ModelConfig": "Models/yolov11.json",
     "UseCuda": true,
     "GpuId": 0,
     "Thresh": 0.4,
-    "TargetTypes": "boat",
+    "TargetTypes": "person,boat",
     "Preferences": {
     }
   },
@@ -78,18 +78,18 @@
     }
   },
   "AnalysisHandlers": [
-    //{
-    //  "AssemblyFile": "Handler.MultiOccurrence.dll",
-    //  "FullQualifiedClassName": "Handler.MultiOccurrence.Algorithms.MultiOccurrenceAlg",
-    //  "Preferences": {
-    //    "EventName": "撒网事件",
-    //    "EventMessage": "侦测到疑似撒网行为",
-    //    "CloseThreshold": 0.5,
-    //    "PrimaryType": "net",
-    //    "AuxiliaryType": "person",
-    //    "SuppressionSeconds": 2
-    //  }
-    //},
+    {
+      "AssemblyFile": "Handler.MultiOccurrence.dll",
+      "FullQualifiedClassName": "Handler.MultiOccurrence.Algorithms.MultiOccurrenceAlg",
+      "Preferences": {
+        "EventName": "偷渡",
+        "EventMessage": "侦测到疑似偷渡行为",
+        "CloseThreshold": 0.5,
+        "PrimaryType": "boat",
+        "AuxiliaryType": "person",
+        "SuppressionSeconds": 2
+      }
+    },
     //{
     //  "AssemblyFile": "Handler.Ocr.dll",
     //  "FullQualifiedClassName": "Handler.Ocr.Algorithms.PaddleSharpOcrAlg",
@@ -110,15 +110,15 @@
     //    "MaxCount": "10"
     //  }
     //},
-    {
-      "AssemblyFile": "Handler.RegionAccess.dll",
-      "FullQualifiedClassName": "Handler.RegionAccess.Algorithms.RegionAccessAlg",
-      "Preferences": {
-        "EventName": "警戒区",
-        "InterestAreaName": "alarm region",
-        "ObjTypes": "boat"
-      }
-    },
+    //{
+    //  "AssemblyFile": "Handler.RegionAccess.dll",
+    //  "FullQualifiedClassName": "Handler.RegionAccess.Algorithms.RegionAccessAlg",
+    //  "Preferences": {
+    //    "EventName": "警戒区",
+    //    "InterestAreaName": "alarm region",
+    //    "ObjTypes": "boat"
+    //  }
+    //},
     //{
     //  "AssemblyFile": "Handler.FaceRecognition.dll",
     //  "FullQualifiedClassName": "Handler.FaceRecognition.Algorithms.FaceRecognitionAlg",
