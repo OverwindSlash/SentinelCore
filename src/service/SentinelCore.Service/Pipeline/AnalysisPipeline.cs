@@ -11,6 +11,7 @@ using SentinelCore.Domain.Abstractions.RegionManager;
 using SentinelCore.Domain.Abstractions.SnapshotManager;
 using SentinelCore.Domain.Entities.AnalysisDefinitions.Geometrics;
 using SentinelCore.Domain.Entities.AnalysisEngine;
+using SentinelCore.Domain.Entities.ObjectDetection;
 using SentinelCore.Domain.Entities.VideoStream;
 using SentinelCore.Domain.Events.AnalysisEngine;
 using SentinelCore.Service.Pipeline.Settings;
@@ -265,9 +266,10 @@ namespace SentinelCore.Service.Pipeline
             DisplayDefinitions(analyzedFrame);
 
             // Select one display pattern.
-            DisplayBasicResults(analyzedFrame);
+            // DisplayBasicResults(analyzedFrame);
             // DisplayObjectDensityResults(analyzedFrame);
             // DisplayRegionAccessResults(analyzedFrame);
+            DisplaySmugglingResult(analyzedFrame);
 
             Cv2.ImShow("test", analyzedFrame.Scene.Resize(new Size(1920, 1080)));
             Cv2.WaitKey(1);
@@ -304,6 +306,37 @@ namespace SentinelCore.Service.Pipeline
             //     DrawLine(countLine.Item1, analyzedFrame.Scene, Scalar.Black);
             //     DrawLine(countLine.Item2, analyzedFrame.Scene, Scalar.Black);
             // }
+        }
+
+        private void DisplaySmugglingResult(Frame analyzedFrame)
+        {
+            var image = analyzedFrame.Scene;
+
+            foreach (var detectedObject in analyzedFrame.DetectedObjects)
+            {
+                if (!detectedObject.IsUnderAnalysis)
+                {
+                    continue;
+                }
+                
+                var bbox = detectedObject.Bbox;
+
+                Scalar boxColor = new Scalar(0, 255, 0);    // 默认绿色边框
+
+                // Display box for all objects.
+                image.Rectangle(new Point(bbox.X, bbox.Y), new Point(bbox.X + bbox.Width, bbox.Y + bbox.Height), boxColor);
+            }
+
+            // Display person count.
+            int personCount = (int)analyzedFrame.GetProperty("person_count");
+            image.PutText(personCount.ToString(), new Point(image.Width/2, image.Height/2), HersheyFonts.HersheyPlain, 3.0, Scalar.Crimson);
+
+            // Display people gathering status.
+            bool isPeopleGathering = (bool)analyzedFrame.GetProperty("people_gathering");
+            if (isPeopleGathering)
+            {
+                image.PutText(isPeopleGathering.ToString(), new Point((image.Width / 2) + 50, image.Height / 2), HersheyFonts.HersheyPlain, 3.0, Scalar.Crimson);
+            }
         }
 
         private void DisplayBasicResults(Frame analyzedFrame)

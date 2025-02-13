@@ -2,7 +2,7 @@
   "Pipeline": {
     "DeviceName": "CameraId001",
     //"Uri": "rtsp://admin:CS%40202304@192.168.1.151:554/Streaming/Channels/101?transportmode=unicast&profile=Profile_1",
-    "Uri": "D:\\video\\Smuggling\\02.mp4",
+    "Uri": "D:\\video\\Smuggling\\04.mp4",
     "FrameLifetime": 200,
     "EnableDebugDisplay": true
   },
@@ -100,16 +100,16 @@
     //    "ScoreThresh": "0.75"
     //  }
     //},
-    {
-      "AssemblyFile": "Handler.ObjectDensity.dll",
-      "FullQualifiedClassName": "Handler.ObjectDensity.Algorithms.ObjectDensityAlg",
-      "Preferences": {
-        "EventName": "人员聚集",
-        "ObjectType": "person",
-        "CountingRegion": "",
-        "MaxCount": "10"
-      }
-    },
+    //{
+    //  "AssemblyFile": "Handler.ObjectDensity.dll",
+    //  "FullQualifiedClassName": "Handler.ObjectDensity.Algorithms.ObjectDensityAlg",
+    //  "Preferences": {
+    //    "EventName": "人员聚集",
+    //    "ObjectType": "person",
+    //    "CountingRegion": "",
+    //    "MaxCount": "5"
+    //  }
+    //},
     //{
     //  "AssemblyFile": "Handler.RegionAccess.dll",
     //  "FullQualifiedClassName": "Handler.RegionAccess.Algorithms.RegionAccessAlg",
@@ -128,6 +128,15 @@
     //    "GpuId": 0
     //  }
     //},
+    {
+      "AssemblyFile": "Handler.Smuggling.dll",
+      "FullQualifiedClassName": "Handler.Smuggling.Algorithms.SmugglingAlg",
+      "Preferences": {
+        "EventName": "人员偷渡",
+        "MaxPersonCount": "5",
+        "EventSustainSec": "5"
+      }
+    }
   ],
   "MessagePoster": [
     {

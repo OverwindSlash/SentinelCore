@@ -6,4 +6,13 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Folder Include="Events\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\domain\SentinelCore.Domain\SentinelCore.Domain.csproj" />
+    <ProjectReference Include="..\..\service\SentinelCore.Service\SentinelCore.Service.csproj" />
+  </ItemGroup>
+
 </Project>

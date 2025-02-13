@@ -1,6 +1,7 @@
 ﻿using SentinelCore.Domain.Abstractions.AnalysisHandler;
 using SentinelCore.Domain.Entities.AnalysisDefinitions.Geometrics;
 using SentinelCore.Domain.Entities.AnalysisEngine;
+using SentinelCore.Domain.Entities.ObjectDetection;
 using SentinelCore.Domain.Entities.VideoStream;
 using SentinelCore.Service.Pipeline;
 using Serilog;
@@ -87,7 +88,7 @@ namespace Handler.ObjectDensity.Algorithms
                 }
             }
 
-            int counting = 1;
+            int counting = 0;
 
             foreach (var detectedObject in frame.DetectedObjects)
             {
@@ -109,16 +110,16 @@ namespace Handler.ObjectDensity.Algorithms
                     continue;
                 }
 
-                if (counting > _maxCount)
-                {
-                    Log.Warning($"{detectedObject.Label} number: {counting} in detection region, exceed max thresh: {_maxCount}.");
-                }
-                else
-                {
-                    //Console.WriteLine($"INFO: {detectedObject.Label} number: {counting} in detection region");
-                }
-
                 counting++;
+            }
+
+            if (counting >= _maxCount)
+            {
+                Log.Warning($"{_objType} number: {counting} in detection region, exceed max thresh: {_maxCount}.");
+            }
+            else
+            {
+                //Console.WriteLine($"INFO: {detectedObject.Label} number: {counting} in detection region");
             }
 
             frame.SetProperty("counting", counting - 1);

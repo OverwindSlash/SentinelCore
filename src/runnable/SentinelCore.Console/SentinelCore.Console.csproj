@@ -24,6 +24,7 @@
     <ProjectReference Include="..\..\handler\Handler.ObjectDensity\Handler.ObjectDensity.csproj" />
     <ProjectReference Include="..\..\handler\Handler.Ocr\Handler.Ocr.csproj" />
     <ProjectReference Include="..\..\handler\Handler.RegionAccess\Handler.RegionAccess.csproj" />
+    <ProjectReference Include="..\..\handler\Handler.Smuggling\Handler.Smuggling.csproj" />
   </ItemGroup>
 
   <ItemGroup>
