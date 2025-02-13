@@ -13,9 +13,6 @@ namespace Detector.YoloV5Onnx
         private YoloPredictor _predictor;
         private List<string> _targetTypes = new();
         private List<string> _names = new();
-
-
-
         
         public void PrepareEnv(Dictionary<string, string>? envParam = null)
         {
@@ -95,7 +92,7 @@ namespace Detector.YoloV5Onnx
 
         public List<BoundingBox> Detect(Mat image, float thresh = 0.5f)
         {
-            YoloPrediction[] detectedObjects = _predictor.Predict(image, thresh).ToArray();
+            YoloPrediction[] detectedObjects = _predictor.Predict(image, thresh, _targetTypes).ToArray();
 
             return GenerateBoundingBoxes(detectedObjects);
         }

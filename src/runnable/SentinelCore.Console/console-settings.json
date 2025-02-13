@@ -2,7 +2,7 @@
   "Pipeline": {
     "DeviceName": "CameraId001",
     //"Uri": "rtsp://admin:CS%40202304@192.168.1.151:554/Streaming/Channels/101?transportmode=unicast&profile=Profile_1",
-    "Uri": "D:\\Video\\Smuggling\\01.mp4",
+    "Uri": "D:\\video\\Ship\\suzhou.ts",
     "FrameLifetime": 200,
     "EnableDebugDisplay": true
   },
@@ -23,14 +23,14 @@
     "FullQualifiedClassName": "Detector.YoloV5Onnx.YoloOnnxDetector",
     //"AssemblyFile": "Detector.YoloV11Onnx.dll",
     //"FullQualifiedClassName": "Detector.YoloV11Onnx.YoloOnnxDetector",
-    "ModelPath": "Models/yolov5m.onnx",
+    "ModelPath": "Models/yolov5x.onnx",
     "ModelConfig": "Models/yolov5.json",
     //"ModelPath": "Models/yolo11m.onnx",
     //"ModelConfig": "Models/yolov11.json",
     "UseCuda": true,
     "GpuId": 0,
     "Thresh": 0.4,
-    "TargetTypes": "person,boat",
+    "TargetTypes": "boat",
     "Preferences": {
     }
   },
@@ -110,15 +110,15 @@
     //    "MaxCount": "10"
     //  }
     //},
-    //{
-    //  "AssemblyFile": "Handler.RegionAccess.dll",
-    //  "FullQualifiedClassName": "Handler.RegionAccess.Algorithms.RegionAccessAlg",
-    //  "Preferences": {
-    //    "EventName": "警戒区",
-    //    "InterestAreaName": "alarm region",
-    //    "ObjTypes": "boat"
-    //  }
-    //},
+    {
+      "AssemblyFile": "Handler.RegionAccess.dll",
+      "FullQualifiedClassName": "Handler.RegionAccess.Algorithms.RegionAccessAlg",
+      "Preferences": {
+        "EventName": "警戒区",
+        "InterestAreaName": "alarm region",
+        "ObjTypes": "boat"
+      }
+    },
     //{
     //  "AssemblyFile": "Handler.FaceRecognition.dll",
     //  "FullQualifiedClassName": "Handler.FaceRecognition.Algorithms.FaceRecognitionAlg",

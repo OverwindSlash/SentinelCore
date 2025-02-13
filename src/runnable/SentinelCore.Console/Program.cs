@@ -16,4 +16,12 @@ Log.Information($"Analysis begin...");
 Log.Information($"using configuration file: {configFile}");
 
 var pipelineAppService = new AnalysisPipelineAppService();
-pipelineAppService.RunWithConfigFile(configFile);
+
+try
+{
+    pipelineAppService.RunWithConfigFile(configFile);
+}
+catch (Exception e)
+{
+    Log.Fatal(e.Message);
+}
