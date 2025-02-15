@@ -2,7 +2,7 @@
   "Pipeline": {
     "DeviceName": "CameraId001",
     //"Uri": "rtsp://admin:CS%40202304@192.168.1.151:554/Streaming/Channels/101?transportmode=unicast&profile=Profile_1",
-    "Uri": "D:\\video\\Smuggling\\04.mp4",
+    "Uri": "D:\\video\\Smuggling\\08.mp4",
     "FrameLifetime": 200,
     "EnableDebugDisplay": true
   },

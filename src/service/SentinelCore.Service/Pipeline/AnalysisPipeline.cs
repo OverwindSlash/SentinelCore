@@ -335,7 +335,19 @@ namespace SentinelCore.Service.Pipeline
             bool isPeopleGathering = (bool)analyzedFrame.GetProperty("people_gathering");
             if (isPeopleGathering)
             {
-                image.PutText(isPeopleGathering.ToString(), new Point((image.Width / 2) + 50, image.Height / 2), HersheyFonts.HersheyPlain, 3.0, Scalar.Crimson);
+                image.PutText("P", new Point((image.Width / 2) + 50, image.Height / 2), HersheyFonts.HersheyPlain, 3.0, Scalar.Crimson);
+            }
+
+            // Display boat existence status.
+            bool isBoatExistence = (bool)analyzedFrame.GetProperty("boat_existence");
+            if (isBoatExistence)
+            {
+                image.PutText("B", new Point((image.Width / 2) + 100, image.Height / 2), HersheyFonts.HersheyPlain, 3.0, Scalar.Crimson);
+            }
+
+            if (isBoatExistence && isPeopleGathering)
+            {
+                image.PutText("Smuggling", new Point((image.Width / 2) + 50, image.Height / 2 + 50), HersheyFonts.HersheyPlain, 3.0, Scalar.Crimson);
             }
         }
 

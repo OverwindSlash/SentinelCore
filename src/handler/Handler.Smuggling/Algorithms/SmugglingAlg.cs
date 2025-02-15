@@ -1,4 +1,5 @@
-﻿using SentinelCore.Domain.Abstractions.AnalysisHandler;
+﻿using OpenCvSharp;
+using SentinelCore.Domain.Abstractions.AnalysisHandler;
 using SentinelCore.Domain.Entities.AnalysisDefinitions.Geometrics;
 using SentinelCore.Domain.Entities.AnalysisEngine;
 using SentinelCore.Domain.Entities.ObjectDetection;
@@ -19,6 +20,8 @@ namespace Handler.Smuggling.Algorithms
 
         private readonly TtlFlagManager<string> _flagManager;
 
+        private Point _boatPosition;
+
         public string HandlerName => nameof(SmugglingAlg);
 
         public SmugglingAlg(AnalysisPipeline pipeline, Dictionary<string, string> preferences)
@@ -29,6 +32,8 @@ namespace Handler.Smuggling.Algorithms
             _eventSustainSec = int.Parse(preferences["EventSustainSec"]);
 
             _flagManager = new TtlFlagManager<string>();
+
+            _boatPosition = new Point(0, 0);
         }
 
         public void SetServiceProvider(IServiceProvider serviceProvider)
@@ -45,6 +50,13 @@ namespace Handler.Smuggling.Algorithms
 
             _flagManager.TryGetValue("people_gathering", out var isPeopleGathering);
             frame.SetProperty("people_gathering", isPeopleGathering);
+
+            if (CheckBoatExistence(frame))
+            {
+                _flagManager.SetValue("boat_existence", true, _eventSustainSec);
+            }
+            _flagManager.TryGetValue("boat_existence", out var isBoatExistence);
+            frame.SetProperty("boat_existence", isBoatExistence);
 
             return new AnalysisResult(true);
         }
@@ -71,6 +83,60 @@ namespace Handler.Smuggling.Algorithms
             frame.SetProperty("person_count", counting);
 
             return (counting >= _maxPersonCount);
+        }
+
+        private bool CheckBoatExistence(Frame frame)
+        {
+            foreach (var detectedObject in frame.DetectedObjects)
+            {
+                if (!detectedObject.IsUnderAnalysis)
+                {
+                    continue;
+                }
+
+                if (detectedObject.Label.ToLower() == "boat")
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private double CalculatePersonBoatAverageDistance(Frame frame)
+        {
+            if (_boatPosition is { X: 0, Y: 0 })
+            {
+                return -1;
+            }
+
+            double totalDistance = 0;
+            int counting = 0;
+
+            foreach (var detectedObject in frame.DetectedObjects)
+            {
+                if (!detectedObject.IsUnderAnalysis)
+                {
+                    continue;
+                }
+
+                if (detectedObject.Label.ToLower() != "person")
+                {
+                    continue;
+                }
+
+                var personCenter = new Point(detectedObject.X + detectedObject.Width / 2, detectedObject.Y + detectedObject.Height / 2);
+
+                totalDistance += CalculateDistance(personCenter, _boatPosition);
+                counting++;
+            }
+
+            return totalDistance / counting;
+        }
+
+        private double CalculateDistance(Point p1, Point p2)
+        {
+            return Math.Sqrt(Math.Pow(p1.X - p2.X, 2) + Math.Pow(p1.Y - p2.Y, 2));
         }
 
         public void Dispose()
