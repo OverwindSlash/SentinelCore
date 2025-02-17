@@ -51,14 +51,14 @@ namespace SentinelCore.Domain.Entities.VideoStream
             }
         }
 
-        public object GetProperty(string key)
+        public T GetProperty<T>(string key)
         {
             if (_customizeProperties.ContainsKey(key))
             {
-                return _customizeProperties[key];
+                return (T)_customizeProperties[key];
             }
 
-            return null;
+            return default(T);
         }
 
         public static List<BoundingBox> RemoveContainedBoxes(List<BoundingBox> boxes)

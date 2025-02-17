@@ -254,19 +254,13 @@ namespace Handler.RegionAccess.Algorithms
 
             return new AnalysisResult(true);
         }
-
-
+        
         public override void ProcessEvent(ObjectExpiredEvent @event)
         {
             if (_objLastInRegionStatus.ContainsKey(@event.Id))
             {
                 _objLastInRegionStatus.TryRemove(@event.Id, out _);
             }
-        }
-
-        public void Dispose()
-        {
-            
         }
     }
 }

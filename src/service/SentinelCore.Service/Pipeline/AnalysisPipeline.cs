@@ -325,29 +325,52 @@ namespace SentinelCore.Service.Pipeline
 
                 // Display box for all objects.
                 image.Rectangle(new Point(bbox.X, bbox.Y), new Point(bbox.X + bbox.Width, bbox.Y + bbox.Height), boxColor);
+
+                // Display id.
+                // image.PutText(detectedObject.Id, new Point(bbox.X, bbox.Y - 20), HersheyFonts.HersheyPlain, 2.0, boxColor);
             }
 
-            // Display person count.
-            int personCount = (int)analyzedFrame.GetProperty("person_count");
-            image.PutText(personCount.ToString(), new Point(image.Width/2, image.Height/2), HersheyFonts.HersheyPlain, 3.0, Scalar.Crimson);
+            // Display gatherings.
+            var gatherings = analyzedFrame.GetProperty<List<(BoundingBox, int)>>("gatherings");
+            if (gatherings != null)
+            {
+                foreach (var gathering in gatherings)
+                {
+                    var bbox = gathering.Item1;
+                    var count = gathering.Item2;
+
+                    image.Rectangle(new Point(bbox.X, bbox.Y), new Point(bbox.X + bbox.Width, bbox.Y + bbox.Height), Scalar.Crimson);
+
+                    image.PutText(count.ToString(), new Point(bbox.CenterX, bbox.CenterY), HersheyFonts.HersheyPlain, 3.0, Scalar.Crimson);
+                }
+
+                //Console.WriteLine("OK");
+            }
 
             // Display people gathering status.
-            bool isPeopleGathering = (bool)analyzedFrame.GetProperty("people_gathering");
+            bool isPeopleGathering = analyzedFrame.GetProperty<bool>("people_gathering");
             if (isPeopleGathering)
             {
-                image.PutText("P", new Point((image.Width / 2) + 50, image.Height / 2), HersheyFonts.HersheyPlain, 3.0, Scalar.Crimson);
+                image.PutText("Crowd", new Point(image.Width - 150, image.Height / 5), HersheyFonts.HersheyPlain, 2.0, Scalar.Crimson);
             }
 
             // Display boat existence status.
-            bool isBoatExistence = (bool)analyzedFrame.GetProperty("boat_existence");
+            bool isBoatExistence = analyzedFrame.GetProperty<bool>("boat_existence");
             if (isBoatExistence)
             {
-                image.PutText("B", new Point((image.Width / 2) + 100, image.Height / 2), HersheyFonts.HersheyPlain, 3.0, Scalar.Crimson);
+                image.PutText("Boat", new Point(image.Width - 150, image.Height / 5 + 50), HersheyFonts.HersheyPlain, 2.0, Scalar.Crimson);
             }
 
-            if (isBoatExistence && isPeopleGathering)
+            // Display people away from boat status.
+            var isPeopleAwayFromBoat = analyzedFrame.GetProperty<bool>("people_away_from_boat");
+            if (isPeopleAwayFromBoat)
             {
-                image.PutText("Smuggling", new Point((image.Width / 2) + 50, image.Height / 2 + 50), HersheyFonts.HersheyPlain, 3.0, Scalar.Crimson);
+                image.PutText("Flee", new Point(image.Width - 150, image.Height / 5 + 100), HersheyFonts.HersheyPlain, 2.0, Scalar.Crimson);
+            }
+
+            if (isBoatExistence && isPeopleGathering && isPeopleAwayFromBoat)
+            {
+                image.PutText("Smuggling", new Point((image.Width / 2) - 100, 50), HersheyFonts.HersheyPlain, 3.0, Scalar.Crimson);
             }
         }
 
@@ -434,7 +457,7 @@ namespace SentinelCore.Service.Pipeline
             // Draw specified area for debug
             foreach (var analysisArea in definition.AnalysisAreas)
             {
-                var counting = (int)analyzedFrame.GetProperty("counting");
+                var counting = analyzedFrame.GetProperty<int>("counting");
                 if (counting != null)
                 {
                     var areaPoint = analysisArea.Points[1];
