@@ -15,7 +15,7 @@ namespace SentinelCore.Domain.Entities.ObjectDetection
         public string Id => $"{Label}:{TrackingId}";
         public int LabelId => Bbox.LabelId;
         public string Label => Bbox.Label;
-        public long TrackingId => Bbox.TrackingId;
+        public int TrackingId => Bbox.TrackingId;
         public float Confidence => Bbox.Confidence;
 
         #region ComputeProperties

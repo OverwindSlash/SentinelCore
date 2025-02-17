@@ -17,14 +17,14 @@ namespace RegionManager.DefinitionBased
         public ImageAnalysisDefinition AnalysisDefinition { get; private set; }
 
         // Id(type:trackingId) -> trakingId, actually it is a Set.
-        private readonly ConcurrentDictionary<string, long> _allTrackingIdsUnderAnalysis;
+        private readonly ConcurrentDictionary<string, int> _allTrackingIdsUnderAnalysis;
 
         private ISubscriber<ObjectExpiredEvent> _subscriber;
         private IDisposable _disposableSubscriber;
 
         public RegionManager()
         {
-            _allTrackingIdsUnderAnalysis = new ConcurrentDictionary<string, long>();
+            _allTrackingIdsUnderAnalysis = new ConcurrentDictionary<string, int>();
         }
 
         public void LoadAnalysisDefinition(string jsonFile, int imageWidth, int imageHeight)

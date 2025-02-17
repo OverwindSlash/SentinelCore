@@ -10,9 +10,9 @@ namespace SentinelCore.Domain.Events.AnalysisEngine
 
         public string Label { get; }
 
-        public long TrackingId { get; }
+        public int TrackingId { get; }
 
-        public ObjectExpiredEvent(string id, int labelId, string label, long trackingId)
+        public ObjectExpiredEvent(string id, int labelId, string label, int trackingId)
         {
             Id = id;
             LabelId = labelId;

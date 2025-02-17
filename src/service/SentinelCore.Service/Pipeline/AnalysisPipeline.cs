@@ -331,17 +331,16 @@ namespace SentinelCore.Service.Pipeline
             }
 
             // Display gatherings.
-            var gatherings = analyzedFrame.GetProperty<List<(BoundingBox, int)>>("gatherings");
+            var gatherings = analyzedFrame.GetProperty<List<(BoundingBox, List<DetectedObject>)>>("gatherings");
             if (gatherings != null)
             {
                 foreach (var gathering in gatherings)
                 {
                     var bbox = gathering.Item1;
-                    var count = gathering.Item2;
+                    var persons = gathering.Item2;
 
                     image.Rectangle(new Point(bbox.X, bbox.Y), new Point(bbox.X + bbox.Width, bbox.Y + bbox.Height), Scalar.Crimson);
-
-                    image.PutText(count.ToString(), new Point(bbox.CenterX, bbox.CenterY), HersheyFonts.HersheyPlain, 3.0, Scalar.Crimson);
+                    image.PutText(persons.Count.ToString(), new Point(bbox.CenterX, bbox.CenterY), HersheyFonts.HersheyPlain, 3.0, Scalar.Crimson);
                 }
 
                 //Console.WriteLine("OK");
