@@ -323,27 +323,47 @@ namespace SentinelCore.Service.Pipeline
 
                 Scalar boxColor = new Scalar(0, 255, 0);    // 默认绿色边框
 
+                if (detectedObject.Label == "boat")
+                {
+                    image.Rectangle(new Point(bbox.X, bbox.Y), new Point(bbox.X + bbox.Width, bbox.Y + bbox.Height), boxColor);
+                }
+
+                if (detectedObject.Label == "person")
+                {
+                    image.Circle(new Point(bbox.CenterX, bbox.CenterY), 5, Scalar.Aqua);
+                }
+
                 // Display box for all objects.
-                image.Rectangle(new Point(bbox.X, bbox.Y), new Point(bbox.X + bbox.Width, bbox.Y + bbox.Height), boxColor);
+                //image.Rectangle(new Point(bbox.X, bbox.Y), new Point(bbox.X + bbox.Width, bbox.Y + bbox.Height), boxColor);
 
                 // Display id.
-                // image.PutText(detectedObject.Id, new Point(bbox.X, bbox.Y - 20), HersheyFonts.HersheyPlain, 2.0, boxColor);
+                //image.PutText(detectedObject.Id, new Point(bbox.X, bbox.Y - 20), HersheyFonts.HersheyPlain, 2.0, boxColor);
             }
 
             // Display gatherings.
             var gatherings = analyzedFrame.GetProperty<List<(BoundingBox, List<DetectedObject>)>>("gatherings");
-            if (gatherings != null)
+            var fleeGatherings = analyzedFrame.GetProperty<List<(BoundingBox, bool)>>("fleeGatherings");
+            if (gatherings != null && fleeGatherings != null)
             {
                 foreach (var gathering in gatherings)
                 {
                     var bbox = gathering.Item1;
                     var persons = gathering.Item2;
 
-                    image.Rectangle(new Point(bbox.X, bbox.Y), new Point(bbox.X + bbox.Width, bbox.Y + bbox.Height), Scalar.Crimson);
-                    image.PutText(persons.Count.ToString(), new Point(bbox.CenterX, bbox.CenterY), HersheyFonts.HersheyPlain, 3.0, Scalar.Crimson);
+                    foreach (var fleeGathering in fleeGatherings)
+                    {
+                        if (bbox == fleeGathering.Item1)
+                        {
+                            image.Rectangle(new Point(bbox.X, bbox.Y), new Point(bbox.X + bbox.Width, bbox.Y + bbox.Height), Scalar.Crimson);
+                            image.PutText(persons.Count.ToString(), new Point(bbox.CenterX, bbox.CenterY), HersheyFonts.HersheyPlain, 3.0, Scalar.Crimson);
+                        }
+                        else
+                        {
+                            //image.Rectangle(new Point(bbox.X, bbox.Y), new Point(bbox.X + bbox.Width, bbox.Y + bbox.Height), Scalar.Lime);
+                            //image.PutText(persons.Count.ToString(), new Point(bbox.CenterX, bbox.CenterY), HersheyFonts.HersheyPlain, 3.0, Scalar.Lime);
+                        }
+                    }
                 }
-
-                //Console.WriteLine("OK");
             }
 
             // Display people gathering status.
