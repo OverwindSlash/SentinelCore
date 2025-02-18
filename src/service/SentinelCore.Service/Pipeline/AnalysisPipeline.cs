@@ -354,13 +354,25 @@ namespace SentinelCore.Service.Pipeline
                     {
                         if (bbox == fleeGathering.Item1)
                         {
-                            image.Rectangle(new Point(bbox.X, bbox.Y), new Point(bbox.X + bbox.Width, bbox.Y + bbox.Height), Scalar.Crimson);
-                            image.PutText(persons.Count.ToString(), new Point(bbox.CenterX, bbox.CenterY), HersheyFonts.HersheyPlain, 3.0, Scalar.Crimson);
-                        }
-                        else
-                        {
-                            //image.Rectangle(new Point(bbox.X, bbox.Y), new Point(bbox.X + bbox.Width, bbox.Y + bbox.Height), Scalar.Lime);
-                            //image.PutText(persons.Count.ToString(), new Point(bbox.CenterX, bbox.CenterY), HersheyFonts.HersheyPlain, 3.0, Scalar.Lime);
+                            if (fleeGathering.Item2)
+                            {
+                                // if (fleeGatherings.Count == 2)
+                                // {
+                                //     var box1 = fleeGatherings[0].Item1;
+                                //     var box2 = fleeGatherings[1].Item1;
+                                //
+                                //     var r1 = box1.Contains(box2);
+                                //     var r2 = box2.Contains(box1);
+                                // }
+
+                                image.Rectangle(new Point(bbox.X, bbox.Y), new Point(bbox.X + bbox.Width, bbox.Y + bbox.Height), Scalar.Crimson);
+                                image.PutText(persons.Count.ToString(), new Point(bbox.CenterX, bbox.CenterY), HersheyFonts.HersheyPlain, 3.0, Scalar.Crimson);
+                            }
+                            else
+                            {
+                                //image.Rectangle(new Point(bbox.X, bbox.Y), new Point(bbox.X + bbox.Width, bbox.Y + bbox.Height), Scalar.Lime);
+                                //image.PutText(persons.Count.ToString(), new Point(bbox.CenterX, bbox.CenterY), HersheyFonts.HersheyPlain, 3.0, Scalar.Lime);
+                            }
                         }
                     }
                 }

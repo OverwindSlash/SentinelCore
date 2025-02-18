@@ -133,11 +133,11 @@
       "FullQualifiedClassName": "Handler.Smuggling.Algorithms.SmugglingAlg",
       "Preferences": {
         "EventName": "人员偷渡",
-        "WidthBasedApproachFactor": 4.0,
+        "WidthBasedApproachFactor": 1.0,
         "MaxGatheringCount": 5,
         "EventSustainSec": 10,
         "HistoryLengthThresh": 10,
-        "DistanceIncreasePercentThresh": 0.6,
+        "DistanceIncreasePercentThresh": 0.5,
         "MovingAwayPercentThresh": 0.6
       }
     }

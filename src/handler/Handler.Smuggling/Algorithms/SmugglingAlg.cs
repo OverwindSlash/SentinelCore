@@ -74,7 +74,7 @@ namespace Handler.Smuggling.Algorithms
             _flagManager.TryGetValue("boat_existence", out var isBoatExistence);
             frame.SetProperty("boat_existence", isBoatExistence);
 
-            if (isPeopleGathering && isBoatExistence)
+            //if (isPeopleGathering && isBoatExistence)
             {
                 if (CheckPeopleAwayFromBoat(frame))
                 {
@@ -106,17 +106,15 @@ namespace Handler.Smuggling.Algorithms
                 detectedPersons.Add(detectedObject);
             }
 
-            float widthFactor = _widthBasedApproachFactor;  // 基于每个人物宽度的倍数计算聚集阈值
-            List<(BoundingBox, List<DetectedObject>)> gatherings = new List<(BoundingBox, List<DetectedObject>)>();  // 每个聚集区域的外部BoundingBox
-
             // 检测人群聚集
+            List<(BoundingBox, List<DetectedObject>)> gatherings = new List<(BoundingBox, List<DetectedObject>)>();  // 每个聚集区域的外部BoundingBox
             foreach (var outerPerson in detectedPersons)
             {
                 List<DetectedObject> personCluster = new List<DetectedObject>();
                 personCluster.Add(outerPerson);
 
                 // 根据当前侦测框获取距离阈值
-                float distanceThresh = outerPerson.Width * widthFactor;
+                //float distanceThresh = outerPerson.Width * widthFactor;
                 foreach (var innerPerson in detectedPersons)
                 {
                     if (outerPerson == innerPerson)
@@ -124,12 +122,8 @@ namespace Handler.Smuggling.Algorithms
                         continue;
                     }
 
-                    // 判断当前中心点是否与已有聚集区的某个点的距离小于阈值
-                    var distance = CalculateDistance(
-                        new Point(outerPerson.CenterX, outerPerson.CenterY), 
-                        new Point(innerPerson.CenterX, innerPerson.CenterY));
-
-                    if (distance < distanceThresh)
+                    // 基于个人物宽度的倍数计算聚集阈值
+                    if (outerPerson.Bbox.CloseTo(innerPerson.Bbox, _widthBasedApproachFactor))
                     {
                         personCluster.Add(innerPerson);
                     }
@@ -160,20 +154,32 @@ namespace Handler.Smuggling.Algorithms
                 boundingBox.TrackingId = outerPerson.TrackingId;
                 
                 bool isInnerBbox = false;
+                (BoundingBox, List<DetectedObject>)? toRemoveGathering = null; 
+
                 foreach (var gathering in gatherings)
                 {
                     var existBbox = gathering.Item1;
-
+                
                     if (existBbox.Contains(boundingBox))
                     {
                         isInnerBbox = true;
                         break;
+                    }
+
+                    if (boundingBox.Contains(existBbox))
+                    {
+                        toRemoveGathering = gathering;
                     }
                 }
 
                 if (!isInnerBbox)
                 {
                     gatherings.Add((boundingBox, personCluster));
+                }
+
+                if (toRemoveGathering != null)
+                {
+                    gatherings.Remove(toRemoveGathering.Value);
                 }
             }
 
