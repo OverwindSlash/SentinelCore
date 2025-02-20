@@ -238,18 +238,21 @@ namespace Handler.Smuggling.Algorithms
 
         private bool IsMovingAway(Queue<Point> history)
         {
-            if (history.Count < 2) return false;
+            if (history.Count < _historyLengthThresh / 2) return false;
         
             var distances = history.Select(pos => CalculateDistance(pos, _boatPosition)).ToList();
         
             int increasingDistancesCount = 0;
             for (int i = 1; i < distances.Count; i++)
             {
-                if (distances[i] - distances[i - 1] > 2)
+                if (distances[i] - distances[i - 1] > 0)
                 {
                     increasingDistancesCount++;
                 }
+
+                //Console.Write(distances[i].ToString("F1") + " ");
             }
+            //Console.Write("\n");
         
             return (double)increasingDistancesCount / distances.Count >= _distanceIncreasePercentThresh;
         }
