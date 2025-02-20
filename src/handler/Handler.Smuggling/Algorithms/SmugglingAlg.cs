@@ -70,7 +70,7 @@ namespace Handler.Smuggling.Algorithms
             // 检查是否有船舶并设置延迟标记
             if (CheckBoatExistence(frame))
             {
-                _flagManager.SetValue("boat_existence", true, _eventSustainSec);
+                _flagManager.SetValue("boat_existence", true, 2 * _eventSustainSec);
             }
             _flagManager.TryGetValue("boat_existence", out var isBoatExistence);
             frame.SetProperty("boat_existence", isBoatExistence);
@@ -239,20 +239,44 @@ namespace Handler.Smuggling.Algorithms
         private bool IsMovingAway(Queue<Point> history)
         {
             if (history.Count < 2) return false;
-
+        
             var distances = history.Select(pos => CalculateDistance(pos, _boatPosition)).ToList();
-
+        
             int increasingDistancesCount = 0;
             for (int i = 1; i < distances.Count; i++)
             {
-                if (distances[i] > distances[i - 1])
+                if (distances[i] - distances[i - 1] > 2)
                 {
                     increasingDistancesCount++;
                 }
             }
-
+        
             return (double)increasingDistancesCount / distances.Count >= _distanceIncreasePercentThresh;
         }
+
+        // private bool IsMovingAway(Queue<Point> history)
+        // {
+        //     if (history.Count < 2) return false;
+        //
+        //     var distances = history.Select(pos => CalculateDistance(pos, _boatPosition)).ToList();
+        //
+        //     int increasingDistancesCount = 0;
+        //
+        //     // 动态计算minDistanceThreshold，可以基于物体到当前参考点的距离进行调整
+        //     float dynamicThreshold = (float)(distances.Last() * 0.01f);  // 假设物体当前距离的5%作为动态阈值，具体比例可根据实际情况调整
+        //
+        //     for (int i = 1; i < distances.Count; i++)
+        //     {
+        //         // 判断相邻两点之间的距离增量是否大于动态阈值
+        //         if (distances[i] - distances[i - 1] > dynamicThreshold)
+        //         {
+        //             increasingDistancesCount++;
+        //         }
+        //     }
+        //
+        //     return (double)increasingDistancesCount / distances.Count >= _distanceIncreasePercentThresh;
+        // }
+
 
         private double CalculateDistance(Point p1, Point p2)
         {
