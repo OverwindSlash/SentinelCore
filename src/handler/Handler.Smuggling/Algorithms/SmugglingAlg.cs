@@ -28,7 +28,8 @@ namespace Handler.Smuggling.Algorithms
 
         private Point _boatPosition;
 
-        private readonly ConcurrentDictionary<long, Queue<Point>> _personHistory = new ConcurrentDictionary<long, Queue<Point>>();
+        private readonly ConcurrentDictionary<long, Queue<Point>> _personHistory = 
+            new ConcurrentDictionary<long, Queue<Point>>();
 
         public string HandlerName => nameof(SmugglingAlg);
 
@@ -90,44 +91,20 @@ namespace Handler.Smuggling.Algorithms
         private bool CheckPeopleGathering(Frame frame)
         {
             // 获取所有 Person 目标
-            List<DetectedObject> detectedPersons = new List<DetectedObject>();
-            foreach (var detectedObject in frame.DetectedObjects)
-            {
-                if (!detectedObject.IsUnderAnalysis)
-                {
-                    continue;
-                }
-
-                if (detectedObject.Label.ToLower() != "person")
-                {
-                    continue;
-                }
-                
-                detectedPersons.Add(detectedObject);
-            }
+            List<DetectedObject> detectedPersons = 
+                frame.FilterObjectsUnderAnalysis(obj => obj.Label.ToLower() == "person");
 
             // 检测人群聚集
-            List<(BoundingBox, List<DetectedObject>)> gatherings = new List<(BoundingBox, List<DetectedObject>)>();  // 每个聚集区域的外部BoundingBox
+            List<ObjectGroup> allPersonGatherings = new List<ObjectGroup>();
             foreach (var outerPerson in detectedPersons)
             {
                 List<DetectedObject> personCluster = new List<DetectedObject>();
                 personCluster.Add(outerPerson);
 
-                // 根据当前侦测框获取距离阈值
-                //float distanceThresh = outerPerson.Width * widthFactor;
-                foreach (var innerPerson in detectedPersons)
-                {
-                    if (outerPerson == innerPerson)
-                    {
-                        continue;
-                    }
-
-                    // 基于个人物宽度的倍数计算聚集阈值
-                    if (outerPerson.Bbox.CloseTo(innerPerson.Bbox, _widthBasedApproachFactor))
-                    {
-                        personCluster.Add(innerPerson);
-                    }
-                }
+                // 根据两人之间的距离判断是否属于同一聚集
+                personCluster.AddRange(detectedPersons.
+                    Where(innerPerson => outerPerson != innerPerson).
+                    Where(innerPerson => outerPerson.Bbox.CloseTo(innerPerson.Bbox, _widthBasedApproachFactor)));
 
                 // 如果当前聚集人数没有超过阈值，则继续寻找下一个聚集
                 if (personCluster.Count < _maxGatheringCount)
@@ -135,58 +112,44 @@ namespace Handler.Smuggling.Algorithms
                     continue;
                 }
 
-                // 计算当前聚集区域的外部BoundingBox
-                float minX = personCluster.Min(p => p.TopLeftX);
-                float minY = personCluster.Min(p => p.TopLeftY);
-                float maxX = personCluster.Max(p => p.BottomRightX);
-                float maxY = personCluster.Max(p => p.BottomRightY);
-                float width = maxX - minX;
-                float height = maxY - minY;
+                // 创建人群聚集对象
+                var currentPersonGathering = new ObjectGroup(frame, personCluster, "gathering", outerPerson.TrackingId);
 
-                var boundingBox = new BoundingBox(
-                    labelId: -1,
-                    label: "gathering",
-                    confidence: 1.0f,
-                    x: (int)minX,
-                    y: (int)minY,
-                    width: (int)width,
-                    height: (int)height);
-                boundingBox.TrackingId = outerPerson.TrackingId;
-                
-                bool isInnerBbox = false;
-                (BoundingBox, List<DetectedObject>)? toRemoveGathering = null; 
+                // 去重有包含关系的人群聚集对象
+                bool isCurrentGatheringInnerBbox = false;
+                ObjectGroup toRemoveGathering = null; 
 
-                foreach (var gathering in gatherings)
+                foreach (var candidateGathering in allPersonGatherings)
                 {
-                    var existBbox = gathering.Item1;
-                
-                    if (existBbox.Contains(boundingBox))
+                    // 如果当前聚集包含在候选聚集内，则跳过
+                    if (candidateGathering.Bbox.Contains(currentPersonGathering.Bbox))
                     {
-                        isInnerBbox = true;
+                        isCurrentGatheringInnerBbox = true;
                         break;
                     }
 
-                    if (boundingBox.Contains(existBbox))
+                    // 如果候选聚集包含在当前聚集内，则移除候选聚集
+                    if (currentPersonGathering.Bbox.Contains(candidateGathering.Bbox))
                     {
-                        toRemoveGathering = gathering;
+                        toRemoveGathering = candidateGathering;
                     }
                 }
 
-                if (!isInnerBbox)
+                if (!isCurrentGatheringInnerBbox)
                 {
-                    gatherings.Add((boundingBox, personCluster));
+                    allPersonGatherings.Add(currentPersonGathering);
                 }
 
                 if (toRemoveGathering != null)
                 {
-                    gatherings.Remove(toRemoveGathering.Value);
+                    allPersonGatherings.Remove(toRemoveGathering);
                 }
             }
 
-            frame.SetProperty("gatherings", gatherings);
+            frame.SetProperty("gatherings", allPersonGatherings);
 
             // 返回是否聚集人数超过阈值
-            return gatherings.Any(g => g.Item2.Count > _maxGatheringCount);  // _maxGatheringCount为聚集人数的阈值
+            return allPersonGatherings.Any(g => g.GroupObjects.Count > _maxGatheringCount);  // _maxGatheringCount为聚集人数的阈值
         }
 
         private bool CheckBoatExistence(Frame frame)
@@ -215,70 +178,62 @@ namespace Handler.Smuggling.Algorithms
                 return false;
             }
 
-            var gatherings = frame.GetProperty<List<(BoundingBox, List<DetectedObject>)>>("gatherings");
+            bool isAnyPeopleGatheringFlee = false;
+
+            var gatherings = frame.GetProperty<List<ObjectGroup>>("gatherings");
             if (gatherings != null)
             {
-                // 计算所有 Person 与船的距离
+                // 正在远离船舶的 Person 的 Id 集合
                 HashSet<int> fleePersons = new HashSet<int>();
-                foreach (var detectedObject in frame.DetectedObjects)
+
+                // 获取所有 Person 目标
+                List<DetectedObject> detectedPersons =
+                    frame.FilterObjectsUnderAnalysis(obj => obj.Label.ToLower() == "person");
+
+                // 将 Person 按照 TrackingId 放入历史队列, 并计算是否远离
+                foreach (var person in detectedPersons)
                 {
-                    if (!detectedObject.IsUnderAnalysis)
-                    {
-                        continue;
-                    }
-
-                    if (detectedObject.Label.ToLower() != "person")
-                    {
-                        continue;
-                    }
-
-                    var personCenter = new Point(detectedObject.CenterX, detectedObject.CenterY);
-                    int personId = detectedObject.TrackingId;
+                    int personId = person.TrackingId;
 
                     if (!_personHistory.ContainsKey(personId))
                         _personHistory[personId] = new Queue<Point>();
 
-                    _personHistory[personId].Enqueue(personCenter);
+                    _personHistory[personId].Enqueue(new Point(person.CenterX, person.CenterY));
 
                     // 保持队列长度不超过设定的历史长度
                     if (_personHistory[personId].Count > _historyLengthThresh)
                     {
                         _personHistory[personId].Dequeue();
                     }
-
-                    // 分析是否正在远离参考点
+                    
+                    // 分析是否正在远离船舶
                     if (IsMovingAway(_personHistory[personId]))
                     {
                         fleePersons.Add(personId);
                     }
                 }
-
-                // 计算每个人群聚集里有多少人正远离船
-                List<(BoundingBox, bool)> fleeGathering = new List<(BoundingBox, bool)>();
+                
+                // 计算每个人群聚集里有多少比例的人正远离船
                 foreach (var gathering in gatherings)
                 {
-                    var gatheringBbox = gathering.Item1;
-                    var personObjects = gathering.Item2;
-
                     int fleePersonCount = 0;
-                    foreach (var personObject in personObjects)
+                    foreach (var person in gathering.GroupObjects)
                     {
-                        if (fleePersons.Contains(personObject.TrackingId))
+                        if (fleePersons.Contains(person.TrackingId))
                         {
                             fleePersonCount++;
                         }
                     }
 
-                    bool isGatheringFlee = (((float)fleePersonCount / personObjects.Count) > _movingAwayPercentThresh);
-                    fleeGathering.Add((gatheringBbox, isGatheringFlee));
+                    bool isGatheringFlee = ((float)fleePersonCount / gathering.GroupObjects.Count) > _movingAwayPercentThresh;
+                    
+                    gathering.SetProperty("isFlee", isGatheringFlee);
+
+                    isAnyPeopleGatheringFlee |= isGatheringFlee;
                 }
-
-                frame.SetProperty("fleeGatherings", fleeGathering);
-
-                return fleeGathering.Any(g => g.Item2 == true);
             }
 
-            return false;
+            return isAnyPeopleGatheringFlee;
         }
 
         private bool IsMovingAway(Queue<Point> history)

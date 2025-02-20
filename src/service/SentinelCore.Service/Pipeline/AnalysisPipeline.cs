@@ -332,48 +332,27 @@ namespace SentinelCore.Service.Pipeline
                 {
                     image.Circle(new Point(bbox.CenterX, bbox.CenterY), 5, Scalar.Aqua);
                 }
-
-                // Display box for all objects.
-                //image.Rectangle(new Point(bbox.X, bbox.Y), new Point(bbox.X + bbox.Width, bbox.Y + bbox.Height), boxColor);
-
-                // Display id.
-                //image.PutText(detectedObject.Id, new Point(bbox.X, bbox.Y - 20), HersheyFonts.HersheyPlain, 2.0, boxColor);
             }
 
             // Display gatherings.
-            var gatherings = analyzedFrame.GetProperty<List<(BoundingBox, List<DetectedObject>)>>("gatherings");
-            var fleeGatherings = analyzedFrame.GetProperty<List<(BoundingBox, bool)>>("fleeGatherings");
-            if (gatherings != null && fleeGatherings != null)
+            var gatherings = analyzedFrame.GetProperty<List<ObjectGroup>>("gatherings");
+            if (gatherings != null)
             {
                 foreach (var gathering in gatherings)
                 {
-                    var bbox = gathering.Item1;
-                    var persons = gathering.Item2;
+                    var bbox = gathering.Bbox;
+                    var persons = gathering.GroupObjects;
+                    var isFlee = gathering.GetProperty<bool>("isFlee");
 
-                    foreach (var fleeGathering in fleeGatherings)
+                    if (isFlee)
                     {
-                        if (bbox == fleeGathering.Item1)
-                        {
-                            if (fleeGathering.Item2)
-                            {
-                                // if (fleeGatherings.Count == 2)
-                                // {
-                                //     var box1 = fleeGatherings[0].Item1;
-                                //     var box2 = fleeGatherings[1].Item1;
-                                //
-                                //     var r1 = box1.Contains(box2);
-                                //     var r2 = box2.Contains(box1);
-                                // }
-
-                                image.Rectangle(new Point(bbox.X, bbox.Y), new Point(bbox.X + bbox.Width, bbox.Y + bbox.Height), Scalar.Crimson);
-                                image.PutText(persons.Count.ToString(), new Point(bbox.CenterX, bbox.CenterY), HersheyFonts.HersheyPlain, 3.0, Scalar.Crimson);
-                            }
-                            else
-                            {
-                                //image.Rectangle(new Point(bbox.X, bbox.Y), new Point(bbox.X + bbox.Width, bbox.Y + bbox.Height), Scalar.Lime);
-                                //image.PutText(persons.Count.ToString(), new Point(bbox.CenterX, bbox.CenterY), HersheyFonts.HersheyPlain, 3.0, Scalar.Lime);
-                            }
-                        }
+                        image.Rectangle(new Point(bbox.X, bbox.Y), new Point(bbox.X + bbox.Width, bbox.Y + bbox.Height), Scalar.Crimson);
+                        image.PutText(persons.Count.ToString(), new Point(bbox.CenterX, bbox.CenterY), HersheyFonts.HersheyPlain, 3.0, Scalar.Crimson);
+                    }
+                    else
+                    {
+                        //image.Rectangle(new Point(bbox.X, bbox.Y), new Point(bbox.X + bbox.Width, bbox.Y + bbox.Height), Scalar.Lime);
+                        //image.PutText(persons.Count.ToString(), new Point(bbox.CenterX, bbox.CenterY), HersheyFonts.HersheyPlain, 3.0, Scalar.Lime);
                     }
                 }
             }
@@ -524,37 +503,25 @@ namespace SentinelCore.Service.Pipeline
 
                 Scalar boxColor = new Scalar(0, 255, 0);    // 默认绿色边框
 
-                if (detectedObject.GetProperty("EnterRegion") != null)
+                if (detectedObject.GetProperty<bool>("EnterRegion"))
                 {
-                    var isEnterRegion = (bool)detectedObject.GetProperty("EnterRegion");
-                    if (isEnterRegion)
-                    {
-                        boxColor = new Scalar(0, 0, 255); // 红色边框
-                        // Display id.
-                        image.PutText($"{detectedObject.Id}(Entering Region)", new Point(bbox.X, bbox.Y - 20), HersheyFonts.HersheyPlain, 2.0, boxColor);
-                    }
+                    boxColor = new Scalar(0, 0, 255); // 红色边框
+                    // Display id.
+                    image.PutText($"{detectedObject.Id}(Entering Region)", new Point(bbox.X, bbox.Y - 20), HersheyFonts.HersheyPlain, 2.0, boxColor);
                 }
 
-                if (detectedObject.GetProperty("InRegion") != null)
+                if (detectedObject.GetProperty<bool>("InRegion"))
                 {
-                    var isInRegion = (bool)detectedObject.GetProperty("InRegion");
-                    if (isInRegion)
-                    {
-                        boxColor = new Scalar(255, 0, 255); // 紫色边框
-                        // Display id.
-                        image.PutText($"{detectedObject.Id}(In Region)", new Point(bbox.X, bbox.Y - 20), HersheyFonts.HersheyPlain, 2.0, boxColor);
-                    }
+                    boxColor = new Scalar(255, 0, 255); // 紫色边框
+                    // Display id.
+                    image.PutText($"{detectedObject.Id}(In Region)", new Point(bbox.X, bbox.Y - 20), HersheyFonts.HersheyPlain, 2.0, boxColor);
                 }
 
-                if (detectedObject.GetProperty("LeaveRegion") != null)
+                if (detectedObject.GetProperty<bool>("LeaveRegion"))
                 {
-                    var isLeaveRegion = (bool)detectedObject.GetProperty("LeaveRegion");
-                    if (isLeaveRegion)
-                    {
-                        boxColor = new Scalar(255, 0, 0); // 蓝色边框
-                        // Display id.
-                        image.PutText($"{detectedObject.Id}(Leaving Region)", new Point(bbox.X, bbox.Y - 20), HersheyFonts.HersheyPlain, 2.0, boxColor);
-                    }
+                    boxColor = new Scalar(255, 0, 0); // 蓝色边框
+                    // Display id.
+                    image.PutText($"{detectedObject.Id}(Leaving Region)", new Point(bbox.X, bbox.Y - 20), HersheyFonts.HersheyPlain, 2.0, boxColor);
                 }
 
                 // Display box for all objects.

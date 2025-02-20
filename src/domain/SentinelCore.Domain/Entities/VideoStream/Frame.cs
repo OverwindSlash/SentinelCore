@@ -1,4 +1,5 @@
-﻿using OpenCvSharp;
+﻿using System.Threading.Tasks.Dataflow;
+using OpenCvSharp;
 using SentinelCore.Domain.Entities.ObjectDetection;
 
 namespace SentinelCore.Domain.Entities.VideoStream
@@ -37,6 +38,13 @@ namespace SentinelCore.Domain.Entities.VideoStream
 
                 DetectedObjects.Add(detectedObject);
             }
+        }
+
+        public List<DetectedObject> FilterObjectsUnderAnalysis(Func<DetectedObject, bool> predicate)
+        {
+            return DetectedObjects
+                .Where(o => o.IsUnderAnalysis)
+                .Where(predicate).ToList();
         }
 
         public void SetProperty(string key, object value)

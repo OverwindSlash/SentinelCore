@@ -130,5 +130,28 @@ namespace SentinelCore.Domain.Entities.ObjectDetection
             int newY = Y - (newHeight - Height) / 2;
             return new BoundingBox(LabelId, Label, Confidence, newX, newY, newHeight, newWidth);
         }
+
+        public static BoundingBox FromDetectedObjects(List<DetectedObject> detectedObjects, string label, int trackingId)
+        {
+            // 计算当前聚集区域的外部BoundingBox
+            float minX = detectedObjects.Min(p => p.TopLeftX);
+            float minY = detectedObjects.Min(p => p.TopLeftY);
+            float maxX = detectedObjects.Max(p => p.BottomRightX);
+            float maxY = detectedObjects.Max(p => p.BottomRightY);
+            float width = maxX - minX;
+            float height = maxY - minY;
+
+            var boundingBox = new BoundingBox(
+                labelId: -1,
+                label: label,
+                confidence: 1.0f,
+                x: (int)minX,
+                y: (int)minY,
+                width: (int)width,
+                height: (int)height);
+            boundingBox.TrackingId = trackingId;
+
+            return boundingBox;
+        }
     }
 }

@@ -71,14 +71,14 @@ namespace SentinelCore.Domain.Entities.ObjectDetection
             }
         }
 
-        public object GetProperty(string key)
+        public T GetProperty<T>(string key)
         {
             if (_customizeProperties.ContainsKey(key))
             {
-                return _customizeProperties[key];
+                return (T)_customizeProperties[key];
             }
 
-            return null;
+            return default(T);
         }
 
         public DetectedObject(string deviceId, long frameId, DateTime timeStamp, BoundingBox bbox)
