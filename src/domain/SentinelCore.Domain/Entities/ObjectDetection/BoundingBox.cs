@@ -1,6 +1,9 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 using OpenCvSharp;
+using SentinelCore.Domain.Entities.VideoStream;
+using static OpenCvSharp.FileStorage;
 
 namespace SentinelCore.Domain.Entities.ObjectDetection
 {
@@ -40,6 +43,15 @@ namespace SentinelCore.Domain.Entities.ObjectDetection
         public int BottomCenterX => (X + Width / 2);
         [JsonIgnore]
         public int BottomCenterY => (Y + Height);
+
+        [JsonIgnore]
+        public float Left => X;
+        [JsonIgnore]
+        public float Top => Y;
+        [JsonIgnore]
+        public float Right => X + Width;
+        [JsonIgnore]
+        public float Bottom => Y + Height;
 
         [JsonIgnore] public Rect Rectangle => new Rect(X, Y, Width, Height);
         #endregion
@@ -152,6 +164,77 @@ namespace SentinelCore.Domain.Entities.ObjectDetection
             boundingBox.TrackingId = trackingId;
 
             return boundingBox;
+        }
+
+        public static List<BoundingBox> MergeBoundingBoxes(List<BoundingBox> boundingBoxes, float iouThreshold)
+        {
+            List<BoundingBox> mergedBoxes = new List<BoundingBox>();
+
+            foreach (var currentBox in boundingBoxes)
+            {
+                bool merged = false;
+                foreach (var existingBox in mergedBoxes)
+                {
+                    // 计算 IoU
+                    float iou = BoundingBox.CalculateIoU(existingBox, currentBox);
+                    if (iou > iouThreshold)
+                    {
+                        // 如果 IoU 超过阈值，合并
+                        BoundingBox mergedBox = BoundingBox.Merge(existingBox, currentBox);
+                        mergedBoxes.Remove(existingBox);
+                        mergedBoxes.Add(mergedBox);
+                        merged = true;
+                        break;
+                    }
+                }
+
+                // 如果没有合并，添加新的 BoundingBox
+                if (!merged)
+                {
+                    mergedBoxes.Add(currentBox);
+                }
+            }
+
+            return mergedBoxes;
+        }
+
+        public static BoundingBox Merge(BoundingBox box1, BoundingBox box2)
+        {
+            int x = Math.Min(box1.X, box2.X);
+            int y = Math.Min(box1.Y, box2.Y);
+            int width = Math.Max(box1.X + box1.Width, box2.X + box2.Width) - x;
+            int height = Math.Max(box1.Y + box1.Height, box2.Y + box2.Height) - y;
+
+            return new BoundingBox(
+                labelId: -1,
+                label: box1.Label,
+                confidence: 1.0f,
+                x: x,
+                y: y,
+                width: width,
+                height: height);
+        }
+
+        public static float CalculateIoU(BoundingBox box1, BoundingBox box2)
+        {
+            // 计算交集区域的坐标
+            int x1 = Math.Max(box1.X, box2.X);
+            int y1 = Math.Max(box1.Y, box2.Y);
+            int x2 = Math.Min(box1.X + box1.Width, box2.X + box2.Width);
+            int y2 = Math.Min(box1.Y + box1.Height, box2.Y + box2.Height);
+
+            // 计算交集区域的面积
+            int intersectionWidth = Math.Max(0, x2 - x1);
+            int intersectionHeight = Math.Max(0, y2 - y1);
+            int intersectionArea = intersectionWidth * intersectionHeight;
+
+            // 计算并集区域的面积
+            int area1 = box1.Width * box1.Height;
+            int area2 = box2.Width * box2.Height;
+            int unionArea = area1 + area2 - intersectionArea;
+
+            // 计算 IoU
+            return (float)intersectionArea / unionArea;
         }
     }
 }

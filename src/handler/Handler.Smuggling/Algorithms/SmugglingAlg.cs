@@ -8,6 +8,10 @@ using SentinelCore.Domain.Entities.VideoStream;
 using SentinelCore.Domain.Events.AnalysisEngine;
 using SentinelCore.Service.Pipeline;
 using System.Collections.Concurrent;
+using Handler.Smuggling.Events;
+using System;
+using System.IO;
+using SentinelCore.Domain.Utils.Extensions;
 
 namespace Handler.Smuggling.Algorithms
 {
@@ -16,6 +20,8 @@ namespace Handler.Smuggling.Algorithms
         private readonly AnalysisPipeline _pipeline;
         private readonly string _eventName;
         private IServiceProvider _serviceProvider;
+
+        private IPublisher<SmugglingEvent> _eventPublisher;
 
         private readonly float _widthBasedApproachFactor;
         private readonly int _maxGatheringCount;
@@ -55,6 +61,8 @@ namespace Handler.Smuggling.Algorithms
 
             var subscriber = serviceProvider.GetService<ISubscriber<ObjectExpiredEvent>>();
             this.SetSubscriber(subscriber);
+
+            _eventPublisher = _serviceProvider.GetRequiredService<IPublisher<SmugglingEvent>>();
         }
 
         public AnalysisResult Analyze(Frame frame)
@@ -75,18 +83,22 @@ namespace Handler.Smuggling.Algorithms
             _flagManager.TryGetValue("boat_existence", out var isBoatExistence);
             frame.SetProperty("boat_existence", isBoatExistence);
 
-            //if (isPeopleGathering && isBoatExistence)
+            if (CheckPeopleAwayFromBoat(frame))
             {
-                if (CheckPeopleAwayFromBoat(frame))
-                {
-                    _flagManager.SetValue("people_away_from_boat", true, _eventSustainSec);
-                }
-                _flagManager.TryGetValue("people_away_from_boat", out var isPeopleAwayFromBoat);
-                frame.SetProperty("people_away_from_boat", isPeopleAwayFromBoat);
+                _flagManager.SetValue("people_away_from_boat", true, _eventSustainSec);
+            }
+            _flagManager.TryGetValue("people_away_from_boat", out var isPeopleAwayFromBoat);
+            frame.SetProperty("people_away_from_boat", isPeopleAwayFromBoat);
+
+            if (isPeopleGathering && isBoatExistence && isPeopleAwayFromBoat)
+            {
+                SaveSmugglingScene(frame);
             }
 
             return new AnalysisResult(true);
         }
+
+        
 
         private bool CheckPeopleGathering(Frame frame)
         {
@@ -257,29 +269,49 @@ namespace Handler.Smuggling.Algorithms
             return (double)increasingDistancesCount / distances.Count >= _distanceIncreasePercentThresh;
         }
 
-        // private bool IsMovingAway(Queue<Point> history)
-        // {
-        //     if (history.Count < 2) return false;
-        //
-        //     var distances = history.Select(pos => CalculateDistance(pos, _boatPosition)).ToList();
-        //
-        //     int increasingDistancesCount = 0;
-        //
-        //     // 动态计算minDistanceThreshold，可以基于物体到当前参考点的距离进行调整
-        //     float dynamicThreshold = (float)(distances.Last() * 0.01f);  // 假设物体当前距离的5%作为动态阈值，具体比例可根据实际情况调整
-        //
-        //     for (int i = 1; i < distances.Count; i++)
-        //     {
-        //         // 判断相邻两点之间的距离增量是否大于动态阈值
-        //         if (distances[i] - distances[i - 1] > dynamicThreshold)
-        //         {
-        //             increasingDistancesCount++;
-        //         }
-        //     }
-        //
-        //     return (double)increasingDistancesCount / distances.Count >= _distanceIncreasePercentThresh;
-        // }
+        private void SaveSmugglingScene(Frame frame)
+        {
+            var gatherings = frame.GetProperty<List<ObjectGroup>>("gatherings");
+            if (gatherings.Count == 0)
+            {
+                return;
+            }
 
+            var cloneScene = frame.Scene.Clone();
+
+            foreach (var detectedObject in frame.DetectedObjects)
+            {
+                if (!detectedObject.IsUnderAnalysis)
+                {
+                    continue;
+                }
+
+                if (detectedObject.Label == "person")
+                {
+                    cloneScene.Circle(new Point(detectedObject.CenterX, detectedObject.CenterY), 5, Scalar.Aqua);
+                }
+            }
+
+            var boundingBoxes = gatherings.ConvertAll(g => g.Bbox);
+            var mergeBoxes = BoundingBox.MergeBoundingBoxes(boundingBoxes, 0.3f);
+
+            foreach (var bbox in mergeBoxes)
+            {
+                cloneScene.Rectangle(new Point(bbox.X, bbox.Y), new Point(bbox.X + bbox.Width, bbox.Y + bbox.Height), Scalar.Crimson);
+            }
+
+            var snapshotManager = _pipeline.SnapshotManager;
+            string filename = $"smg_{frame.DeviceId}_{frame.TimeStamp.ToString("yyyyMMddHHmmssfff")}.jpg";
+
+            var path = Path.Combine(snapshotManager.SnapshotDir, "Events");
+            path.EnsureDirExistence();
+            var filepath = Path.Combine(path, filename);
+
+            Task.Run(() =>
+            {
+                cloneScene.SaveImage(filepath);
+            });
+        }
 
         private double CalculateDistance(Point p1, Point p2)
         {
