@@ -13,6 +13,11 @@ namespace Handler.Smuggling.Events
         public Mat Scene { get; private set; }
         public string EventScenePath { get; set; }
 
+        public SmugglingEvent(string snapshotId, Mat scene, string eventScenePath)
+            : base("Smuggling Event", "", "UnknownHandler", "UnknownDevice")
+        {
+        }
+
         public override string GenerateJsonMessage()
         {
             return this.GenerateLesSmugglingEventJsonMsg();

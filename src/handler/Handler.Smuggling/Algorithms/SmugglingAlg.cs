@@ -1,4 +1,5 @@
-﻿using MessagePipe;
+﻿using Handler.Smuggling.Events;
+using MessagePipe;
 using Microsoft.Extensions.DependencyInjection;
 using OpenCvSharp;
 using SentinelCore.Domain.Abstractions.AnalysisHandler;
@@ -6,12 +7,9 @@ using SentinelCore.Domain.Entities.AnalysisEngine;
 using SentinelCore.Domain.Entities.ObjectDetection;
 using SentinelCore.Domain.Entities.VideoStream;
 using SentinelCore.Domain.Events.AnalysisEngine;
+using SentinelCore.Domain.Utils.Extensions;
 using SentinelCore.Service.Pipeline;
 using System.Collections.Concurrent;
-using Handler.Smuggling.Events;
-using System;
-using System.IO;
-using SentinelCore.Domain.Utils.Extensions;
 
 namespace Handler.Smuggling.Algorithms
 {
@@ -92,13 +90,14 @@ namespace Handler.Smuggling.Algorithms
 
             if (isPeopleGathering && isBoatExistence && isPeopleAwayFromBoat)
             {
-                SaveSmugglingScene(frame);
+                string eventId = $"smg_{frame.DeviceId}_{frame.TimeStamp.ToString("yyyyMMddHHmmssfff")}";
+
+                string filepath = SaveSmugglingScene(frame, eventId);
+                SmugglingEvent smugglingEvent = PublishSmugglingEvent(frame, eventId, filepath);
             }
 
             return new AnalysisResult(true);
         }
-
-        
 
         private bool CheckPeopleGathering(Frame frame)
         {
@@ -269,12 +268,12 @@ namespace Handler.Smuggling.Algorithms
             return (double)increasingDistancesCount / distances.Count >= _distanceIncreasePercentThresh;
         }
 
-        private void SaveSmugglingScene(Frame frame)
+        private string SaveSmugglingScene(Frame frame, string eventId)
         {
             var gatherings = frame.GetProperty<List<ObjectGroup>>("gatherings");
             if (gatherings.Count == 0)
             {
-                return;
+                return string.Empty;
             }
 
             var cloneScene = frame.Scene.Clone();
@@ -301,7 +300,7 @@ namespace Handler.Smuggling.Algorithms
             }
 
             var snapshotManager = _pipeline.SnapshotManager;
-            string filename = $"smg_{frame.DeviceId}_{frame.TimeStamp.ToString("yyyyMMddHHmmssfff")}.jpg";
+            string filename = $"{eventId}.jpg";
 
             var path = Path.Combine(snapshotManager.SnapshotDir, "Events");
             path.EnsureDirExistence();
@@ -311,6 +310,16 @@ namespace Handler.Smuggling.Algorithms
             {
                 cloneScene.SaveImage(filepath);
             });
+
+            return filepath;
+        }
+
+        private SmugglingEvent PublishSmugglingEvent(Frame frame, string eventId, string filepath)
+        {
+            var smugglingEvent = new SmugglingEvent(eventId, frame.Scene, filepath);
+            _eventPublisher.Publish(smugglingEvent);
+
+            return smugglingEvent;
         }
 
         private double CalculateDistance(Point p1, Point p2)
