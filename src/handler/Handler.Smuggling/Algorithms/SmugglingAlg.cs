@@ -94,6 +94,8 @@ namespace Handler.Smuggling.Algorithms
 
                 string filepath = SaveSmugglingScene(frame, eventId);
                 SmugglingEvent smugglingEvent = PublishSmugglingEvent(frame, eventId, filepath);
+
+                PostRestfulJsonMessage(smugglingEvent);
             }
 
             return new AnalysisResult(true);
@@ -325,6 +327,17 @@ namespace Handler.Smuggling.Algorithms
         private double CalculateDistance(Point p1, Point p2)
         {
             return Math.Sqrt(Math.Pow(p1.X - p2.X, 2) + Math.Pow(p1.Y - p2.Y, 2));
+        }
+
+        private void PostRestfulJsonMessage(SmugglingEvent smugglingEvent)
+        {
+            var jsonMessagePosters = _pipeline.JsonMessagePosters;
+
+            foreach (var jsonMessagePoster in jsonMessagePosters)
+            {
+                var jsonMessage = smugglingEvent.GenerateJsonMessage();
+                jsonMessagePoster.PostRestfulJsonMessage(jsonMessage);
+            }
         }
 
         public override void ProcessEvent(ObjectExpiredEvent @event)
