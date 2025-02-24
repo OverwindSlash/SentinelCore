@@ -25,6 +25,7 @@
     <ProjectReference Include="..\..\handler\Handler.Ocr\Handler.Ocr.csproj" />
     <ProjectReference Include="..\..\handler\Handler.RegionAccess\Handler.RegionAccess.csproj" />
     <ProjectReference Include="..\..\handler\Handler.Smuggling\Handler.Smuggling.csproj" />
+    <ProjectReference Include="..\..\handler\Handler.Trajectory\Handler.Trajectory.csproj" />
   </ItemGroup>
 
   <ItemGroup>

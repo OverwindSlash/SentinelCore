@@ -16,11 +16,12 @@ using SentinelCore.Domain.Entities.VideoStream;
 using SentinelCore.Domain.Events.AnalysisEngine;
 using SentinelCore.Service.Pipeline.Settings;
 using Serilog;
+using System.Collections.Concurrent;
 using System.Reflection;
 
 namespace SentinelCore.Service.Pipeline
 {
-    public class AnalysisPipeline : IDisposable
+    public class AnalysisPipeline : FrameAndObjectExpiredSubscriber, IDisposable
     {
         private PipelineSettings _pipeLineSettings;
         private MediaLoaderSettings _mediaLoaderSettings;
@@ -49,6 +50,8 @@ namespace SentinelCore.Service.Pipeline
         public IRegionManager RegionManager => _regionManager;
         public ISnapshotManager SnapshotManager => _snapshotManager;
         public List<IJsonMessagePoster> JsonMessagePosters => _jsonMsgPosters;
+
+        public ConcurrentDictionary<string, Scalar> _objectColors = new();
 
         public AnalysisPipeline(IConfiguration config)
         {
@@ -223,11 +226,17 @@ namespace SentinelCore.Service.Pipeline
             _analysisHandlers.ForEach(handler => handler.SetServiceProvider(_provider));
 
             // 以下开始绑定事件
-            _regionManager.SetSubscriber(_provider.GetRequiredService<ISubscriber<ObjectExpiredEvent>>());
+            var objectExpiredSubscriber = _provider.GetRequiredService<ISubscriber<ObjectExpiredEvent>>();
+            var frameExpiredSubscriber = _provider.GetRequiredService<ISubscriber<FrameExpiredEvent>>();
+
+            _regionManager.SetSubscriber(objectExpiredSubscriber);
 
             // 最后再由_snapshot 组件处理对象和帧过期事件, 以防止分析过程中截图被清理
-            _snapshotManager.SetSubscriber(_provider.GetRequiredService<ISubscriber<FrameExpiredEvent>>());
-            _snapshotManager.SetSubscriber(_provider.GetRequiredService<ISubscriber<ObjectExpiredEvent>>());
+            _snapshotManager.SetSubscriber(frameExpiredSubscriber);
+            _snapshotManager.SetSubscriber(objectExpiredSubscriber);
+
+            this.SetSubscriber(objectExpiredSubscriber);
+            this.SetSubscriber(frameExpiredSubscriber);
 
             Log.Information("Initialize base components successfully.");
         }
@@ -269,12 +278,13 @@ namespace SentinelCore.Service.Pipeline
             // DisplayBasicResults(analyzedFrame);
             // DisplayObjectDensityResults(analyzedFrame);
             // DisplayRegionAccessResults(analyzedFrame);
-            DisplaySmugglingResult(analyzedFrame);
+            // DisplaySmugglingResult(analyzedFrame);
+            DisplayTrajectory(analyzedFrame);
 
             Cv2.ImShow("test", analyzedFrame.Scene.Resize(new Size(1920, 1080)));
             Cv2.WaitKey(1);
         }
-
+        
         private void DisplayDefinitions(Frame analyzedFrame)
         {
             var definition = _regionManager.AnalysisDefinition;
@@ -306,6 +316,42 @@ namespace SentinelCore.Service.Pipeline
             //     DrawLine(countLine.Item1, analyzedFrame.Scene, Scalar.Black);
             //     DrawLine(countLine.Item2, analyzedFrame.Scene, Scalar.Black);
             // }
+        }
+
+        private void DisplayTrajectory(Frame analyzedFrame)
+        {
+            var image = analyzedFrame.Scene;
+
+            foreach (var detectedObject in analyzedFrame.DetectedObjects)
+            {
+                if (!detectedObject.IsUnderAnalysis)
+                {
+                    continue;
+                }
+
+                var bbox = detectedObject.Bbox;
+                image.Circle(new Point(bbox.CenterX, bbox.CenterY), 5, Scalar.Aqua);
+            }
+
+            var trajectories = analyzedFrame.GetProperty<ConcurrentDictionary<string, Queue<Point>>>("trajectory");
+            if (trajectories != null)
+            {
+                foreach (var trajectory in trajectories)
+                {
+                    var color = Scalar.RandomColor();
+
+                    if (_objectColors.ContainsKey(trajectory.Key))
+                    {
+                        color = _objectColors[trajectory.Key];
+                    }
+                    else
+                    {
+                        _objectColors.TryAdd(trajectory.Key, color);
+                    }
+
+                    image.Polylines(new List<IEnumerable<Point>>() { trajectory.Value }, false, color);
+                }
+            }
         }
 
         private void DisplaySmugglingResult(Frame analyzedFrame)
@@ -550,6 +596,14 @@ namespace SentinelCore.Service.Pipeline
             Point stop = new Point(line.Stop.OriginalX, line.Stop.OriginalY);
 
             frame.Line(start, stop, color);
+        }
+
+        public override void ProcessEvent(ObjectExpiredEvent @event)
+        {
+            if (_objectColors.ContainsKey(@event.Id))
+            {
+                _objectColors.TryRemove(@event.Id, out var _);
+            }
         }
 
         public void Dispose()

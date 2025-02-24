@@ -1,8 +1,8 @@
 {
   "Pipeline": {
     "DeviceName": "CameraId001",
-    //"Uri": "rtsp://admin:CS%40202304@192.168.1.151:554/Streaming/Channels/101?transportmode=unicast&profile=Profile_1",
-    "Uri": "D:\\video\\Smuggling\\02.mp4",
+    "Uri": "rtsp://admin:CS%40202304@192.168.1.151:554/Streaming/Channels/101?transportmode=unicast&profile=Profile_1",
+    //"Uri": "D:\\video\\Smuggling\\02.mp4",
     "FrameLifetime": 200,
     "EnableDebugDisplay": true
   },
@@ -29,7 +29,7 @@
     //"ModelConfig": "Models/yolov11.json",
     "UseCuda": true,
     "GpuId": 0,
-    "Thresh": 0.3,
+    "Thresh": 0.4,
     "TargetTypes": "person,boat",
     "Preferences": {
     }
@@ -128,17 +128,24 @@
     //    "GpuId": 0
     //  }
     //},
+    //{
+    //  "AssemblyFile": "Handler.Smuggling.dll",
+    //  "FullQualifiedClassName": "Handler.Smuggling.Algorithms.SmugglingAlg",
+    //  "Preferences": {
+    //    "EventName": "人员偷渡",
+    //    "WidthBasedApproachFactor": 1.0,
+    //    "MaxGatheringCount": 5,
+    //    "EventSustainSec": 10,
+    //    "HistoryLengthThresh": 10,
+    //    "DistanceIncreasePercentThresh": 0.5,
+    //    "MovingAwayPercentThresh": 0.6
+    //  }
+    //},
     {
-      "AssemblyFile": "Handler.Smuggling.dll",
-      "FullQualifiedClassName": "Handler.Smuggling.Algorithms.SmugglingAlg",
+      "AssemblyFile": "Handler.Trajectory.dll",
+      "FullQualifiedClassName": "Handler.Trajectory.Algorithms.TrajectoryAlg",
       "Preferences": {
-        "EventName": "人员偷渡",
-        "WidthBasedApproachFactor": 1.0,
-        "MaxGatheringCount": 5,
-        "EventSustainSec": 10,
-        "HistoryLengthThresh": 10,
-        "DistanceIncreasePercentThresh": 0.5,
-        "MovingAwayPercentThresh": 0.6
+        "HistoryLengthThresh": 30
       }
     }
   ],
