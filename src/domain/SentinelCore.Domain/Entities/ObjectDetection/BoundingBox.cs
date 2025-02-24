@@ -128,6 +128,17 @@ namespace SentinelCore.Domain.Entities.ObjectDetection
             return (float)Math.Sqrt(dx * dx + dy * dy);
         }
 
+        public float CalculateDistance(BoundingBox other)
+        {
+            // 计算中心点之间的欧几里得距离
+            float centerX1 = X + Width / 2f;
+            float centerY1 = Y + Height / 2f;
+            float centerX2 = other.X + other.Width / 2f;
+            float centerY2 = other.Y + other.Height / 2f;
+
+            return (float)Math.Sqrt(Math.Pow(centerX1 - centerX2, 2) + Math.Pow(centerY1 - centerY2, 2));
+        }
+
         public bool Contains(BoundingBox other)
         {
             return Rectangle.Contains(other.Rectangle);

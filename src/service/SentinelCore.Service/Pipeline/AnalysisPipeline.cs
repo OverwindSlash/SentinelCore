@@ -204,8 +204,8 @@ namespace SentinelCore.Service.Pipeline
                 {"model_config", _detectorSettings.ModelConfig},
                 {"use_cuda", _detectorSettings.UseCuda.ToString()},
                 {"gpu_id", _detectorSettings.GpuId.ToString()},
-                {"target_types", _detectorSettings.TargetTypes}
-            });
+                {"target_types", _detectorSettings.TargetTypes}},
+                _detectorSettings.Preferences);
 
             _videoLoader = _provider.GetService<IVideoLoader>();
             _videoLoader.Open(_pipeLineSettings.Uri);
@@ -330,7 +330,8 @@ namespace SentinelCore.Service.Pipeline
                 }
 
                 var bbox = detectedObject.Bbox;
-                image.Circle(new Point(bbox.CenterX, bbox.CenterY), 5, Scalar.Aqua);
+                image.Rectangle(new Point(bbox.X, bbox.Y), new Point(bbox.X + bbox.Width, bbox.Y + bbox.Height), Scalar.Aqua);
+                //image.Circle(new Point(bbox.CenterX, bbox.CenterY), 5, Scalar.Aqua);
             }
 
             var trajectories = analyzedFrame.GetProperty<ConcurrentDictionary<string, Queue<Point>>>("trajectory");

@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\application\SentinelCore.AppService\SentinelCore.AppService.csproj" />
+    <ProjectReference Include="..\..\dependency\Detector.ImageDiff\Detector.ImageDiff.csproj" />
     <ProjectReference Include="..\..\dependency\Detector.YoloV11Onnx\Detector.YoloV11Onnx.csproj" />
     <ProjectReference Include="..\..\dependency\Detector.YoloV5Onnx\Detector.YoloV5Onnx.csproj" />
     <ProjectReference Include="..\..\dependency\MediaLoader.FFMpeg\MediaLoader.FFMpeg.csproj" />

@@ -1,9 +1,7 @@
 ﻿using Microsoft.ML.OnnxRuntime;
 using OpenCvSharp;
-using OpenCvSharp.Extensions;
 using SentinelCore.Domain.Abstractions.ObjectDetector;
 using SentinelCore.Domain.Entities.ObjectDetection;
-using System.Drawing;
 using Serilog;
 
 namespace Detector.YoloV5Onnx
@@ -19,7 +17,8 @@ namespace Detector.YoloV5Onnx
 
         }
 
-        public void Init(Dictionary<string, string>? initParam = null)
+        public void Init(Dictionary<string, string>? initParam = null,
+            Dictionary<string, string>? preferences = null)
         {
             Log.Information($"YOlO v5 detector initializing...");
 
