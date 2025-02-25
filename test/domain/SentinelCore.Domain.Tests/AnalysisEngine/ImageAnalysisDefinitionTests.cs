@@ -11,13 +11,13 @@ namespace SentinelCore.Domain.Tests.AnalysisEngine
         {
             var definition = new ImageAnalysisDefinition();
 
-            definition.Name = "Suzhou-Demo";
+            definition.Name = "HK-Demo";
 
             definition.IsObjectAnalyzableRetain = false;
             definition.IsDoubleLineCounting = false;
 
-            int width = 2560;
-            int height = 1440;
+            int width = 3632;
+            int height = 1632;
 
             definition.SetImageSize(width, height);
 
@@ -28,25 +28,25 @@ namespace SentinelCore.Domain.Tests.AnalysisEngine
                 analysisArea.Name = "alarm region";
 
                 // method 1
-                var topLeft = new NormalizedPoint(0, 0);
-                var topRight = new NormalizedPoint(1, 0);
-                var bottomRight = new NormalizedPoint(1, 1);
-                var bottomLeft = new NormalizedPoint(0, 1);
-                topLeft.SetImageSize(width, height);
-                topRight.SetImageSize(width, height);
-                bottomRight.SetImageSize(width, height);
-                bottomLeft.SetImageSize(width, height);
-                
-                analysisArea.AddPoint(topLeft);
-                analysisArea.AddPoint(topRight);
-                analysisArea.AddPoint(bottomRight);
-                analysisArea.AddPoint(bottomLeft);
+                // var topLeft = new NormalizedPoint(0, 0);
+                // var topRight = new NormalizedPoint(1, 0);
+                // var bottomRight = new NormalizedPoint(1, 1);
+                // var bottomLeft = new NormalizedPoint(0, 1);
+                // topLeft.SetImageSize(width, height);
+                // topRight.SetImageSize(width, height);
+                // bottomRight.SetImageSize(width, height);
+                // bottomLeft.SetImageSize(width, height);
+                //
+                // analysisArea.AddPoint(topLeft);
+                // analysisArea.AddPoint(topRight);
+                // analysisArea.AddPoint(bottomRight);
+                // analysisArea.AddPoint(bottomLeft);
 
                 // method 2
-                // analysisArea.AddPoint(new NormalizedPoint(width, height, 66, 634));
-                // analysisArea.AddPoint(new NormalizedPoint(width, height, 254, 1110));
-                // analysisArea.AddPoint(new NormalizedPoint(width, height, 1930, 417));
-                // analysisArea.AddPoint(new NormalizedPoint(width, height, 1155, 367));
+                analysisArea.AddPoint(new NormalizedPoint(width, height, 1094, 642));
+                analysisArea.AddPoint(new NormalizedPoint(width, height, 2644, 642));
+                analysisArea.AddPoint(new NormalizedPoint(width, height, 2644, 990));
+                analysisArea.AddPoint(new NormalizedPoint(width, height, 1094, 990));
 
                 definition.AddAnalysisArea(analysisArea);
             }
@@ -103,10 +103,16 @@ namespace SentinelCore.Domain.Tests.AnalysisEngine
                 // lane.AddPoint(bottomLeft);
 
                 // method 2
-                lane.AddPoint(new NormalizedPoint(width, height, 51, 596));
-                lane.AddPoint(new NormalizedPoint(width, height, 278, 1164));
-                lane.AddPoint(new NormalizedPoint(width, height, 2287, 448));
-                lane.AddPoint(new NormalizedPoint(width, height, 1081, 359));
+                lane.AddPoint(new NormalizedPoint(width, height, 1611, 945));
+                lane.AddPoint(new NormalizedPoint(width, height, 1626, 749));
+                lane.AddPoint(new NormalizedPoint(width, height, 2388, 837));
+                lane.AddPoint(new NormalizedPoint(width, height, 2329, 854));
+                lane.AddPoint(new NormalizedPoint(width, height, 2345, 879));
+                lane.AddPoint(new NormalizedPoint(width, height, 2371, 886));
+                lane.AddPoint(new NormalizedPoint(width, height, 2359, 905));
+                lane.AddPoint(new NormalizedPoint(width, height, 2365, 946));
+                lane.AddPoint(new NormalizedPoint(width, height, 2295, 982));
+                lane.AddPoint(new NormalizedPoint(width, height, 1823, 981));
 
                 definition.Lanes.Add(lane);
             }

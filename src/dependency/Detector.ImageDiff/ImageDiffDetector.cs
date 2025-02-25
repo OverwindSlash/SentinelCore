@@ -105,44 +105,94 @@ namespace Detector.ImageDiff
             _lastImage.Dispose();
             _lastImage = image.Clone();
 
-            return boundingBoxes;
+            //return boundingBoxes;
 
-            //return MergeBoundingBoxes(boundingBoxes, 2.0f);
+            return MergeCloseBoxes(boundingBoxes, 2.0f);
         }
 
-        private List<BoundingBox> MergeBoundingBoxes(List<BoundingBox> boundingBoxes, float threshold)
+        public List<BoundingBox> MergeCloseBoxes(List<BoundingBox> boundingBoxes, float distanceThreshold)
         {
-            List<BoundingBox> mergedBoundingBoxes = new List<BoundingBox>();
-
-            foreach (var bbox in boundingBoxes)
+            if (boundingBoxes.Count == 0)
             {
-                bool merged = false;
+                return boundingBoxes;
+            }
 
-                for (int i = 0; i < mergedBoundingBoxes.Count; i++)
+            List<BoundingBox> boxes = boundingBoxes;
+            int count = boxes.Count;
+            UnionFind uf = new UnionFind(count);
+
+            // 构建并查集关系
+            for (int i = 0; i < count; i++)
+            {
+                for (int j = i + 1; j < count; j++)
                 {
-                    if (bbox.CalculateDistance(mergedBoundingBoxes[i]) < bbox.Width * threshold)
+                    var distance = CalculateDistance(boxes[i], boxes[j]);
+                    var thresh1 = boxes[i].Width * distanceThreshold;
+                    var thresh2 = boxes[j].Width * distanceThreshold;
+
+                    if (distance < thresh1 || distance < thresh2)
                     {
-                        // 合并目标
-                        mergedBoundingBoxes[i] = mergedBoundingBoxes[i].CombineBoundingBox(bbox);
-                        merged = true;
-                        break;
+                        uf.Union(i, j);
                     }
                 }
-
-                if (!merged)
-                {
-                    mergedBoundingBoxes.Add(bbox);
-                }
             }
 
-            if (boundingBoxes.Count != mergedBoundingBoxes.Count)
+            // 按根节点分组
+            Dictionary<int, List<BoundingBox>> groups = new Dictionary<int, List<BoundingBox>>();
+            for (int i = 0; i < count; i++)
             {
-                return MergeBoundingBoxes(mergedBoundingBoxes, threshold);
+                int root = uf.Find(i);
+                if (!groups.ContainsKey(root))
+                    groups[root] = new List<BoundingBox>();
+
+                groups[root].Add(boxes[i]);
             }
-            else
+
+            // 合并每组BoundingBox
+            List<BoundingBox> result = new List<BoundingBox>();
+            foreach (var group in groups.Values)
             {
-                return mergedBoundingBoxes;
+                result.Add(MergeGroup(group));
             }
+
+            return MergeCloseBoxes(result, distanceThreshold);
+        }
+
+        private float CalculateDistance(BoundingBox a, BoundingBox b)
+        {
+            // 计算中心点坐标
+            float aCenterX = a.X + a.Width / 2f;
+            float aCenterY = a.Y + a.Height / 2f;
+            float bCenterX = b.X + b.Width / 2f;
+            float bCenterY = b.Y + b.Height / 2f;
+
+            // 计算欧氏距离
+            float dx = aCenterX - bCenterX;
+            float dy = aCenterY - bCenterY;
+            return MathF.Sqrt(dx * dx + dy * dy);
+        }
+
+        private BoundingBox MergeGroup(List<BoundingBox> group)
+        {
+            // 计算合并后的边界
+            int minX = group.Min(b => b.X);
+            int minY = group.Min(b => b.Y);
+            int maxX = group.Max(b => b.X + b.Width);
+            int maxY = group.Max(b => b.Y + b.Height);
+
+            // 获取置信度最高的标签
+            var best = group.OrderByDescending(b => b.Confidence).First();
+
+            var bbox = new BoundingBox(
+                labelId: 1,
+                label: "object",
+                confidence: 1,
+                x: minX,
+                y: minY,
+                width: maxX - minX,
+                height: maxY - minY);
+
+            return bbox;
         }
 
         public List<BoundingBox> Detect(byte[] imageData, float thresh = 0.5f)

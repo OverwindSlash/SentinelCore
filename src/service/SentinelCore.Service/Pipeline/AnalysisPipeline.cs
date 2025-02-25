@@ -277,9 +277,9 @@ namespace SentinelCore.Service.Pipeline
             // Select one display pattern.
             // DisplayBasicResults(analyzedFrame);
             // DisplayObjectDensityResults(analyzedFrame);
-            // DisplayRegionAccessResults(analyzedFrame);
+            DisplayRegionAccessResults(analyzedFrame);
             // DisplaySmugglingResult(analyzedFrame);
-            DisplayTrajectory(analyzedFrame);
+            // DisplayTrajectory(analyzedFrame);
 
             Cv2.ImShow("test", analyzedFrame.Scene.Resize(new Size(1920, 1080)));
             Cv2.WaitKey(1);
@@ -289,10 +289,10 @@ namespace SentinelCore.Service.Pipeline
         {
             var definition = _regionManager.AnalysisDefinition;
 
-            // foreach (var analysisArea in definition.AnalysisAreas)
-            // {
-            //     DrawRegion(analysisArea, analyzedFrame.Scene, Scalar.Lime);
-            // }
+            foreach (var analysisArea in definition.AnalysisAreas)
+            {
+                DrawRegion(analysisArea, analyzedFrame.Scene, Scalar.Lime);
+            }
             //
             // foreach (var excludedArea in definition.ExcludedAreas)
             // {
@@ -304,12 +304,12 @@ namespace SentinelCore.Service.Pipeline
             //     DrawRegion(lane, analyzedFrame.Scene, Scalar.Yellow);
             // }
             //
-            //foreach (var interestArea in definition.InterestAreas)
-            //{
-            //    DrawRegion(interestArea, analyzedFrame.Scene, Scalar.Yellow);
-            //    var centerPoint = interestArea.GetCenterNormalizedPoint();
-            //    analyzedFrame.Scene.PutText(interestArea.Name, new Point(centerPoint.OriginalX - 30, centerPoint.OriginalY - 30), HersheyFonts.HersheyPlain, 2.0, Scalar.Yellow);
-            //}
+            foreach (var interestArea in definition.InterestAreas)
+            {
+                DrawRegion(interestArea, analyzedFrame.Scene, Scalar.Yellow);
+                var centerPoint = interestArea.GetCenterNormalizedPoint();
+                analyzedFrame.Scene.PutText(interestArea.Name, new Point(centerPoint.OriginalX - 30, centerPoint.OriginalY - 30), HersheyFonts.HersheyPlain, 2.0, Scalar.Yellow);
+            }
             //
             // foreach (var countLine in definition.CountLines)
             // {
@@ -549,6 +549,9 @@ namespace SentinelCore.Service.Pipeline
                 var bbox = detectedObject.Bbox;
 
                 Scalar boxColor = new Scalar(0, 255, 0);    // 默认绿色边框
+
+                // Display id.
+                image.PutText(detectedObject.TrackingId.ToString(), new Point(bbox.X, bbox.Y - 20), HersheyFonts.HersheyPlain, 2.0, boxColor);
 
                 if (detectedObject.GetProperty<bool>("EnterRegion"))
                 {

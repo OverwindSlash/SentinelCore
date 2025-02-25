@@ -1,0 +1,80 @@
+{
+  "Name": "HK-Demo",
+  "IsObjectAnalyzableRetain": false,
+  "IsDoubleLineCounting": false,
+  "AnalysisAreas": [
+    {
+      "Name": "analysis region",
+      "Points": [
+        {
+          "NormalizedX": 0.3012114537444934,
+          "NormalizedY": 0.39338235294117646
+        },
+        {
+          "NormalizedX": 0.7279735682819384,
+          "NormalizedY": 0.39338235294117646
+        },
+        {
+          "NormalizedX": 0.7279735682819384,
+          "NormalizedY": 0.6066176470588235
+        },
+        {
+          "NormalizedX": 0.3012114537444934,
+          "NormalizedY": 0.6066176470588235
+        }
+      ]
+    }
+  ],
+  "ExcludedAreas": [],
+  "Lanes": [],
+  "InterestAreas": [
+    {
+      "Name": "alarm region",
+      "Type": "alarm",
+      "RelativeTypes": [ "boat" ],
+      "Points": [
+        {
+          "NormalizedX": 0.443557268722467,
+          "NormalizedY": 0.5790441176470589
+        },
+        {
+          "NormalizedX": 0.44768722466960353,
+          "NormalizedY": 0.45894607843137253
+        },
+        {
+          "NormalizedX": 0.6574889867841409,
+          "NormalizedY": 0.5128676470588235
+        },
+        {
+          "NormalizedX": 0.6412444933920705,
+          "NormalizedY": 0.5232843137254902
+        },
+        {
+          "NormalizedX": 0.6456497797356828,
+          "NormalizedY": 0.5386029411764706
+        },
+        {
+          "NormalizedX": 0.6528083700440529,
+          "NormalizedY": 0.5428921568627451
+        },
+        {
+          "NormalizedX": 0.6495044052863436,
+          "NormalizedY": 0.5545343137254902
+        },
+        {
+          "NormalizedX": 0.6511563876651982,
+          "NormalizedY": 0.5796568627450981
+        },
+        {
+          "NormalizedX": 0.6318832599118943,
+          "NormalizedY": 0.6017156862745098
+        },
+        {
+          "NormalizedX": 0.5019273127753304,
+          "NormalizedY": 0.6011029411764706
+        }
+      ]
+    }
+  ],
+  "CountLines": []
+}
