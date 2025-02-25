@@ -105,13 +105,21 @@ namespace SentinelCore.Domain.Tests.AnalysisEngine
                 // method 2
                 lane.AddPoint(new NormalizedPoint(width, height, 1611, 945));
                 lane.AddPoint(new NormalizedPoint(width, height, 1626, 749));
-                lane.AddPoint(new NormalizedPoint(width, height, 2388, 837));
-                lane.AddPoint(new NormalizedPoint(width, height, 2329, 854));
+                lane.AddPoint(new NormalizedPoint(width, height, 2073, 809));
+                lane.AddPoint(new NormalizedPoint(width, height, 2080, 975));
+                lane.AddPoint(new NormalizedPoint(width, height, 2104, 976));
+                lane.AddPoint(new NormalizedPoint(width, height, 2115, 814));
+                lane.AddPoint(new NormalizedPoint(width, height, 2388, 836));
+                lane.AddPoint(new NormalizedPoint(width, height, 2328, 854));
                 lane.AddPoint(new NormalizedPoint(width, height, 2345, 879));
                 lane.AddPoint(new NormalizedPoint(width, height, 2371, 886));
-                lane.AddPoint(new NormalizedPoint(width, height, 2359, 905));
+                lane.AddPoint(new NormalizedPoint(width, height, 2358, 905));
                 lane.AddPoint(new NormalizedPoint(width, height, 2365, 946));
                 lane.AddPoint(new NormalizedPoint(width, height, 2295, 982));
+                lane.AddPoint(new NormalizedPoint(width, height, 2150, 982));
+                lane.AddPoint(new NormalizedPoint(width, height, 2152, 965));
+                lane.AddPoint(new NormalizedPoint(width, height, 2138, 964));
+                lane.AddPoint(new NormalizedPoint(width, height, 2134, 981));
                 lane.AddPoint(new NormalizedPoint(width, height, 1823, 981));
 
                 definition.Lanes.Add(lane);

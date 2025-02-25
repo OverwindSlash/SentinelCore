@@ -2,7 +2,8 @@
   "Pipeline": {
     "DeviceName": "CameraId001",
     //"Uri": "rtsp://admin:CS%40202304@192.168.1.151:554/Streaming/Channels/101?transportmode=unicast&profile=Profile_1",
-    "Uri": "D:\\video\\Ship\\phq-1.mp4",
+    "Uri": "rtsp://192.168.1.176:5554/PHQ-Profile_201",
+    //"Uri": "D:\\video\\Ship\\phq-1.mp4",
     "FrameLifetime": 200,
     "EnableDebugDisplay": true
   },
@@ -38,9 +39,9 @@
       "ImageDiff.RoiY": 625,
       "ImageDiff.RoiWidth": 1480,
       "ImageDiff.RoiHeight": 370,
-      "ImageDiff.DiffThresh": 40.0,
-      "ImageDiff.MinBboxWidth": 3,
-      "ImageDiff.MinBboxHeight": 3
+      "ImageDiff.DiffThresh": 30.0,
+      "ImageDiff.MinBboxWidth": 5,
+      "ImageDiff.MinBboxHeight": 5
     }
   },
   "Tracker": {

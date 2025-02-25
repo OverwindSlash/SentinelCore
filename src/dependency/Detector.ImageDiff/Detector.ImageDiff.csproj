@@ -10,4 +10,14 @@
     <ProjectReference Include="..\..\domain\SentinelCore.Domain\SentinelCore.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="BaseImages\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="BaseImages\phq-1-base.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

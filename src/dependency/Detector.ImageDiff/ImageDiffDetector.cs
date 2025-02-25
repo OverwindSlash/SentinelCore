@@ -38,6 +38,8 @@ namespace Detector.ImageDiff
             _minBboxHeight = int.Parse(preferences["ImageDiff.MinBboxHeight"]);
 
             _roi = new Rect(_roiX, _roiY, _roiWidth, _roiHeight);
+
+            //_lastImage = Cv2.ImRead("BaseImages/phq-1-base.jpg");
         }
 
         public int GetClassNumber()
@@ -71,8 +73,8 @@ namespace Detector.ImageDiff
             Mat diffThresholded = new Mat();
             Cv2.Threshold(diff, diffThresholded, _diffThresh, 255, ThresholdTypes.Binary);
 
-            // Cv2.ImShow("Frame with Bounding Boxes", diffThresholded);
-            // Cv2.WaitKey(0);
+            /*Cv2.ImShow("Diff", diffThresholded);
+            Cv2.WaitKey(0);*/
 
             // 查找变化区域
             var contours = Cv2.FindContoursAsArray(diffThresholded, 
@@ -155,7 +157,7 @@ namespace Detector.ImageDiff
                 result.Add(MergeGroup(group));
             }
 
-            return MergeCloseBoxes(result, distanceThreshold);
+            return result;
         }
 
         private float CalculateDistance(BoundingBox a, BoundingBox b)

@@ -281,7 +281,19 @@ namespace SentinelCore.Service.Pipeline
             // DisplaySmugglingResult(analyzedFrame);
             // DisplayTrajectory(analyzedFrame);
 
-            Cv2.ImShow("test", analyzedFrame.Scene.Resize(new Size(1920, 1080)));
+            var definition = _regionManager.AnalysisDefinition;
+            foreach (var analysisArea in definition.AnalysisAreas)
+            {
+                var roi = new Rect(analysisArea.Points[0].OriginalX, analysisArea.Points[0].OriginalY,
+                    analysisArea.Points[2].OriginalX - analysisArea.Points[0].OriginalX,
+                    analysisArea.Points[2].OriginalY - analysisArea.Points[0].OriginalY);
+
+                Mat roiImage = new Mat(analyzedFrame.Scene, roi);
+
+                Cv2.ImShow("test", roiImage);
+            }
+
+            //Cv2.ImShow("test", analyzedFrame.Scene.Resize(new Size(1920, 1080)));
             Cv2.WaitKey(1);
         }
         
@@ -551,27 +563,27 @@ namespace SentinelCore.Service.Pipeline
                 Scalar boxColor = new Scalar(0, 255, 0);    // 默认绿色边框
 
                 // Display id.
-                image.PutText(detectedObject.TrackingId.ToString(), new Point(bbox.X, bbox.Y - 20), HersheyFonts.HersheyPlain, 2.0, boxColor);
+                //image.PutText(detectedObject.TrackingId.ToString(), new Point(bbox.X, bbox.Y - 20), HersheyFonts.HersheyPlain, 2.0, boxColor);
 
                 if (detectedObject.GetProperty<bool>("EnterRegion"))
                 {
                     boxColor = new Scalar(0, 0, 255); // 红色边框
                     // Display id.
-                    image.PutText($"{detectedObject.Id}(Entering Region)", new Point(bbox.X, bbox.Y - 20), HersheyFonts.HersheyPlain, 2.0, boxColor);
+                    image.PutText($"Entering", new Point(bbox.X, bbox.Y - 20), HersheyFonts.HersheyPlain, 2.0, boxColor);
                 }
 
                 if (detectedObject.GetProperty<bool>("InRegion"))
                 {
                     boxColor = new Scalar(255, 0, 255); // 紫色边框
                     // Display id.
-                    image.PutText($"{detectedObject.Id}(In Region)", new Point(bbox.X, bbox.Y - 20), HersheyFonts.HersheyPlain, 2.0, boxColor);
+                    image.PutText($"In Region", new Point(bbox.X, bbox.Y - 20), HersheyFonts.HersheyPlain, 2.0, boxColor);
                 }
 
                 if (detectedObject.GetProperty<bool>("LeaveRegion"))
                 {
                     boxColor = new Scalar(255, 0, 0); // 蓝色边框
                     // Display id.
-                    image.PutText($"{detectedObject.Id}(Leaving Region)", new Point(bbox.X, bbox.Y - 20), HersheyFonts.HersheyPlain, 2.0, boxColor);
+                    image.PutText($"Leaving", new Point(bbox.X, bbox.Y - 20), HersheyFonts.HersheyPlain, 2.0, boxColor);
                 }
 
                 // Display box for all objects.
