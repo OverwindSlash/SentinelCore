@@ -197,7 +197,7 @@ namespace SentinelCore.Service.Pipeline
 
         private void InitializeComponents()
         {
-            // 耗时组件优先初始化，以防止视频解码被延迟导致错误.
+            // 耗时组件优先于视频加载器初始化，以防止视频解码被延迟导致错误.
             _objectDetector = _provider.GetService<IObjectDetector>();
             _objectDetector.Init(new Dictionary<string, string>() {
                 {"model_path", _detectorSettings.ModelPath},
@@ -211,7 +211,6 @@ namespace SentinelCore.Service.Pipeline
             _videoLoader.Open(_pipeLineSettings.Uri);
 
             _regionManager = _provider.GetService<IRegionManager>();
-            
             _regionManager.LoadAnalysisDefinition(_regionManagerSettings.DefinitionFilePath,
                 _videoLoader.Width, _videoLoader.Height);
 
@@ -287,9 +286,9 @@ namespace SentinelCore.Service.Pipeline
                 var roi = new Rect(analysisArea.Points[0].OriginalX, analysisArea.Points[0].OriginalY,
                     analysisArea.Points[2].OriginalX - analysisArea.Points[0].OriginalX,
                     analysisArea.Points[2].OriginalY - analysisArea.Points[0].OriginalY);
-
+            
                 Mat roiImage = new Mat(analyzedFrame.Scene, roi);
-
+            
                 Cv2.ImShow("test", roiImage);
             }
 

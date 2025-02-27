@@ -43,10 +43,10 @@ namespace SentinelCore.Domain.Tests.AnalysisEngine
                 // analysisArea.AddPoint(bottomLeft);
 
                 // method 2
-                analysisArea.AddPoint(new NormalizedPoint(width, height, 1094, 642));
-                analysisArea.AddPoint(new NormalizedPoint(width, height, 2644, 642));
-                analysisArea.AddPoint(new NormalizedPoint(width, height, 2644, 990));
-                analysisArea.AddPoint(new NormalizedPoint(width, height, 1094, 990));
+                analysisArea.AddPoint(new NormalizedPoint(width, height, 1452, 656));
+                analysisArea.AddPoint(new NormalizedPoint(width, height, 2461, 656));
+                analysisArea.AddPoint(new NormalizedPoint(width, height, 2461, 987));
+                analysisArea.AddPoint(new NormalizedPoint(width, height, 1452, 987));
 
                 definition.AddAnalysisArea(analysisArea);
             }

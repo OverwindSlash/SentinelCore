@@ -12,6 +12,16 @@ namespace Detector.YoloV11Onnx
         private List<string> _targetTypes = new();
         private List<string> _names = new();
 
+        // ROI detection
+        private bool _onlyDetectRoi;
+        private int _roiX;
+        private int _roiY;
+        private int _roiWidth;
+        private int _roiHeight;
+        private int _minBboxWidth;
+        private int _minBboxHeight;
+        private Rect _roi;
+
         public void PrepareEnv(Dictionary<string, string>? envParam = null)
         {
 
@@ -67,6 +77,19 @@ namespace Detector.YoloV11Onnx
 
             _predictor = new YoloPredictor(File.ReadAllBytes(modelPath), modelConfig, option);
 
+            GenerateClassNames();
+
+            LoadRoiDefinitions(preferences);
+
+            // Avoid first time-consuming call in test cases.
+            Log.Information($"Warm up model...");
+            using var mat = new Mat("Images/Traffic_001.jpg", ImreadModes.Color);
+            Detect(mat, 0.3F);
+            Log.Information($"Warm up complete.");
+        }
+
+        private void GenerateClassNames()
+        {
             var predictorMetadata = _predictor.Metadata.CustomMetadataMap;
             var namesData = predictorMetadata["names"];
             string[] idAndNames = namesData.Split(',');
@@ -76,12 +99,19 @@ namespace Detector.YoloV11Onnx
             // TODO: Define detection object type in config file.
             _names.Clear();
             _names.AddRange(names);
+        }
 
-            // Avoid first time-consuming call in test cases.
-            Log.Information($"Warm up model...");
-            using var mat = new Mat("Images/Traffic_001.jpg", ImreadModes.Color);
-            Detect(mat, 0.3F);
-            Log.Information($"Warm up complete.");
+        private void LoadRoiDefinitions(Dictionary<string, string>? preferences)
+        {
+            _onlyDetectRoi = bool.Parse(preferences["OnlyDetectRoi"]);
+            _roiX = int.Parse(preferences["RoiX"]);
+            _roiY = int.Parse(preferences["RoiY"]);
+            _roiWidth = int.Parse(preferences["RoiWidth"]);
+            _roiHeight = int.Parse(preferences["RoiHeight"]);
+            _minBboxWidth = int.Parse(preferences["MinBboxWidth"]);
+            _minBboxHeight = int.Parse(preferences["MinBboxHeight"]);
+
+            _roi = new Rect(_roiX, _roiY, _roiWidth, _roiHeight);
         }
 
         public int GetClassNumber()
@@ -91,13 +121,33 @@ namespace Detector.YoloV11Onnx
 
         public List<BoundingBox> Detect(Mat image, float thresh = 0.5f)
         {
-            YoloPrediction[] detectedObjects = _predictor.Predict(image, thresh, _targetTypes).ToArray();
+            var inputImage = GenerateRoiImage(image);
+
+            YoloPrediction[] detectedObjects = _predictor.Predict(inputImage, thresh, _targetTypes).ToArray();
 
             return GenerateBoundingBoxes(detectedObjects);
         }
 
+        private Mat GenerateRoiImage(Mat image)
+        {
+            Mat inputImage = image;
+            if (_onlyDetectRoi)
+            {
+                if ((_roi.X < image.Width && _roi.X + _roi.Width <= image.Width) &&
+                    (_roi.Y < image.Height && _roi.Y + _roi.Height <= image.Height))
+                {
+                    inputImage = new Mat(image, _roi);
+                }
+            }
+
+            return inputImage;
+        }
+
         private List<BoundingBox> GenerateBoundingBoxes(YoloPrediction[] detectedObjects)
         {
+            int roiXOffset = _onlyDetectRoi ? _roiX : 0;
+            int roiYOffset = _onlyDetectRoi ? _roiY : 0;
+
             var boundingBoxes = new List<BoundingBox>();
             foreach (var prediction in detectedObjects)
             {
@@ -107,8 +157,8 @@ namespace Detector.YoloV11Onnx
                     labelId: prediction.TypeId,
                     label: prediction.Type,
                     confidence: prediction.Confidence,
-                    x: box.X,
-                    y: box.Y,
+                    x: box.X + roiXOffset,
+                    y: box.Y + roiYOffset,
                     width: box.Width,
                     height: box.Height
                 );
@@ -122,10 +172,10 @@ namespace Detector.YoloV11Onnx
         public List<BoundingBox> Detect(byte[] imageData, float thresh = 0.5f)
         {
             using MemoryStream stream = new MemoryStream(imageData);
-
             var image = Mat.FromStream(stream, ImreadModes.AnyColor);
 
-            YoloPrediction[] detectedObjects = _predictor.Predict(image, thresh, _targetTypes).ToArray();
+            var inputImage = GenerateRoiImage(image);
+            YoloPrediction[] detectedObjects = _predictor.Predict(inputImage, thresh, _targetTypes).ToArray();
 
             return GenerateBoundingBoxes(detectedObjects);
         }
@@ -134,7 +184,8 @@ namespace Detector.YoloV11Onnx
         {
             var image = Cv2.ImRead(imageFile);
 
-            YoloPrediction[] detectedObjects = _predictor.Predict(image, thresh, _targetTypes).ToArray();
+            var inputImage = GenerateRoiImage(image);
+            YoloPrediction[] detectedObjects = _predictor.Predict(inputImage, thresh, _targetTypes).ToArray();
 
             return GenerateBoundingBoxes(detectedObjects);
         }

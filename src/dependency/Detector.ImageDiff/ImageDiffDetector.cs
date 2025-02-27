@@ -28,13 +28,13 @@ namespace Detector.ImageDiff
         {
             Log.Information($"Image difference detector initializing...");
 
-            _roiX = int.Parse(preferences["ImageDiff.RoiX"]);
-            _roiY = int.Parse(preferences["ImageDiff.RoiY"]);
-            _roiWidth = int.Parse(preferences["ImageDiff.RoiWidth"]);
-            _roiHeight = int.Parse(preferences["ImageDiff.RoiHeight"]);
+            _roiX = int.Parse(preferences["RoiX"]);
+            _roiY = int.Parse(preferences["RoiY"]);
+            _roiWidth = int.Parse(preferences["RoiWidth"]);
+            _roiHeight = int.Parse(preferences["RoiHeight"]);
+            _minBboxWidth = int.Parse(preferences["MinBboxWidth"]);
+            _minBboxHeight = int.Parse(preferences["MinBboxHeight"]);
             _diffThresh = float.Parse(preferences["ImageDiff.DiffThresh"]);
-            _minBboxWidth = int.Parse(preferences["ImageDiff.MinBboxWidth"]);
-            _minBboxHeight = int.Parse(preferences["ImageDiff.MinBboxHeight"]);
 
             _roi = new Rect(_roiX, _roiY, _roiWidth, _roiHeight);
 
@@ -61,6 +61,13 @@ namespace Detector.ImageDiff
             // 转为灰度图，便于比较
             Mat gray1 = new Mat();
             Mat gray2 = new Mat();
+
+            // Mat hsv1 = new Mat();
+            // Mat hsv2 = new Mat();
+
+            //Cv2.CvtColor(lastRoi, hsv1, ColorConversionCodes.BGR2HSV);
+            //Cv2.CvtColor(currentRoi, hsv2, ColorConversionCodes.BGR2HSV);
+
             Cv2.CvtColor(lastRoi, gray1, ColorConversionCodes.BGR2GRAY);
             Cv2.CvtColor(currentRoi, gray2, ColorConversionCodes.BGR2GRAY);
 

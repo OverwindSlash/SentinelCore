@@ -7,20 +7,20 @@
       "Name": "analysis region",
       "Points": [
         {
-          "NormalizedX": 0.3012114537444934,
-          "NormalizedY": 0.39338235294117646
+          "NormalizedX": 0.3997797356828194,
+          "NormalizedY": 0.4019607843137255
         },
         {
-          "NormalizedX": 0.7279735682819384,
-          "NormalizedY": 0.39338235294117646
+          "NormalizedX": 0.6775881057268722,
+          "NormalizedY": 0.4019607843137255
         },
         {
-          "NormalizedX": 0.7279735682819384,
-          "NormalizedY": 0.6066176470588235
+          "NormalizedX": 0.6775881057268722,
+          "NormalizedY": 0.6047794117647058
         },
         {
-          "NormalizedX": 0.3012114537444934,
-          "NormalizedY": 0.6066176470588235
+          "NormalizedX": 0.3997797356828194,
+          "NormalizedY": 0.6047794117647058
         }
       ]
     }

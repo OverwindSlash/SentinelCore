@@ -13,7 +13,7 @@
     "AssemblyFile": "MediaLoader.OpenCV.dll",
     "FullQualifiedClassName": "MediaLoader.OpenCV.VideoLoader",
     "BufferSize": 300,
-    "VideoStride": 10,
+    "VideoStride": 2,
     "Preferences": {
       "LibrariesPath": "runtimes\\win-x64\\ffmpeg"
       //"LibrariesPath": "/usr/lib/x86_64-linux-gnu"
@@ -22,26 +22,27 @@
   "Detector": {
     //"AssemblyFile": "Detector.YoloV5Onnx.dll",
     //"FullQualifiedClassName": "Detector.YoloV5Onnx.YoloOnnxDetector",
-    //"AssemblyFile": "Detector.YoloV11Onnx.dll",
-    //"FullQualifiedClassName": "Detector.YoloV11Onnx.YoloOnnxDetector",
-    "AssemblyFile": "Detector.ImageDiff.dll",
-    "FullQualifiedClassName": "Detector.ImageDiff.ImageDiffDetector",
-    "ModelPath": "Models/yolov5x.onnx",
-    "ModelConfig": "Models/yolov5.json",
-    //"ModelPath": "Models/yolo11m.onnx",
-    //"ModelConfig": "Models/yolov11.json",
+    "AssemblyFile": "Detector.YoloV11Onnx.dll",
+    "FullQualifiedClassName": "Detector.YoloV11Onnx.YoloOnnxDetector",
+    //"AssemblyFile": "Detector.ImageDiff.dll",
+    //"FullQualifiedClassName": "Detector.ImageDiff.ImageDiffDetector",
+    //"ModelPath": "Models/yolov5x.onnx",
+    //"ModelConfig": "Models/yolov5.json",
+    "ModelPath": "Models/yolo11x.onnx",
+    "ModelConfig": "Models/yolov11.json",
     "UseCuda": true,
     "GpuId": 0,
-    "Thresh": 0.1,
-    "TargetTypes": "",
+    "Thresh": 0.05,
+    "TargetTypes": "boat",
     "Preferences": {
-      "ImageDiff.RoiX": 1085,
-      "ImageDiff.RoiY": 625,
-      "ImageDiff.RoiWidth": 1480,
-      "ImageDiff.RoiHeight": 370,
-      "ImageDiff.DiffThresh": 60.0,
-      "ImageDiff.MinBboxWidth": 5,
-      "ImageDiff.MinBboxHeight": 5
+      "OnlyDetectRoi": true,
+      "RoiX": 1452,
+      "RoiY": 656,
+      "RoiWidth": 1009,
+      "RoiHeight": 331,
+      "MinBboxWidth": 5,
+      "MinBboxHeight": 5,
+      "ImageDiff.DiffThresh": 30.0
     }
   },
   "Tracker": {
@@ -126,7 +127,7 @@
       "Preferences": {
         "EventName": "警戒区",
         "InterestAreaName": "alarm region",
-        "ObjTypes": "object"
+        "ObjTypes": "boat"
       }
     },
     //{
