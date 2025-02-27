@@ -1,7 +1,6 @@
 ﻿using OpenCvSharp;
 using SentinelCore.Domain.Abstractions.ObjectDetector;
 using SentinelCore.Domain.Entities.ObjectDetection;
-using SentinelCore.Domain.Entities.VideoStream;
 using Serilog;
 
 namespace Detector.ImageDiff
@@ -73,8 +72,8 @@ namespace Detector.ImageDiff
             Mat diffThresholded = new Mat();
             Cv2.Threshold(diff, diffThresholded, _diffThresh, 255, ThresholdTypes.Binary);
 
-            /*Cv2.ImShow("Diff", diffThresholded);
-            Cv2.WaitKey(0);*/
+            // Cv2.ImShow("Diff", diffThresholded);
+            // Cv2.WaitKey(0);
 
             // 查找变化区域
             var contours = Cv2.FindContoursAsArray(diffThresholded, 
@@ -107,9 +106,9 @@ namespace Detector.ImageDiff
             _lastImage.Dispose();
             _lastImage = image.Clone();
 
-            //return boundingBoxes;
+            var mergeCloseBoxes = MergeCloseBoxes(boundingBoxes, 2.0f);
 
-            return MergeCloseBoxes(boundingBoxes, 2.0f);
+            return mergeCloseBoxes;
         }
 
         public List<BoundingBox> MergeCloseBoxes(List<BoundingBox> boundingBoxes, float distanceThreshold)
