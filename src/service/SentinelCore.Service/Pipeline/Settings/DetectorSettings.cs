@@ -8,5 +8,6 @@
         public int GpuId { get; set; }
         public float Thresh { get; set; }
         public string TargetTypes { get; set; }
+        public int DetectionStride { get; set; }
     }
 }

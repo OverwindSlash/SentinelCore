@@ -204,7 +204,8 @@ namespace SentinelCore.Service.Pipeline
                 {"model_config", _detectorSettings.ModelConfig},
                 {"use_cuda", _detectorSettings.UseCuda.ToString()},
                 {"gpu_id", _detectorSettings.GpuId.ToString()},
-                {"target_types", _detectorSettings.TargetTypes}},
+                {"target_types", _detectorSettings.TargetTypes},
+                {"detection_stride", _detectorSettings.DetectionStride.ToString()}},
                 _detectorSettings.Preferences);
 
             _videoLoader = _provider.GetService<IVideoLoader>();
@@ -280,19 +281,26 @@ namespace SentinelCore.Service.Pipeline
             // DisplaySmugglingResult(analyzedFrame);
             // DisplayTrajectory(analyzedFrame);
 
-            var definition = _regionManager.AnalysisDefinition;
-            foreach (var analysisArea in definition.AnalysisAreas)
+            _detectorSettings.Preferences.TryGetValue("OnlyDetectRoi", out var onlyDetectRoiStr);
+            if (bool.TryParse(onlyDetectRoiStr, out var onlyDetectRoi) && onlyDetectRoi)
             {
-                var roi = new Rect(analysisArea.Points[0].OriginalX, analysisArea.Points[0].OriginalY,
-                    analysisArea.Points[2].OriginalX - analysisArea.Points[0].OriginalX,
-                    analysisArea.Points[2].OriginalY - analysisArea.Points[0].OriginalY);
-            
-                Mat roiImage = new Mat(analyzedFrame.Scene, roi);
-            
-                Cv2.ImShow("test", roiImage);
+                var definition = _regionManager.AnalysisDefinition;
+                foreach (var analysisArea in definition.AnalysisAreas)
+                {
+                    var roi = new Rect(analysisArea.Points[0].OriginalX, analysisArea.Points[0].OriginalY,
+                        analysisArea.Points[2].OriginalX - analysisArea.Points[0].OriginalX,
+                        analysisArea.Points[2].OriginalY - analysisArea.Points[0].OriginalY);
+
+                    Mat roiImage = new Mat(analyzedFrame.Scene, roi);
+
+                    Cv2.ImShow("test", roiImage.Resize(new Size(1920, 1080)));
+                }
+            }
+            else
+            {
+                Cv2.ImShow("test", analyzedFrame.Scene.Resize(new Size(1920, 1080)));
             }
 
-            //Cv2.ImShow("test", analyzedFrame.Scene.Resize(new Size(1920, 1080)));
             Cv2.WaitKey(1);
         }
         
@@ -304,29 +312,29 @@ namespace SentinelCore.Service.Pipeline
             {
                 DrawRegion(analysisArea, analyzedFrame.Scene, Scalar.Lime);
             }
-            //
-            // foreach (var excludedArea in definition.ExcludedAreas)
-            // {
-            //     DrawRegion(excludedArea, analyzedFrame.Scene, Scalar.Red);
-            // }
-            //
-            // foreach (var lane in definition.Lanes)
-            // {
-            //     DrawRegion(lane, analyzedFrame.Scene, Scalar.Yellow);
-            // }
-            //
+            
+            foreach (var excludedArea in definition.ExcludedAreas)
+            {
+                DrawRegion(excludedArea, analyzedFrame.Scene, Scalar.Red);
+            }
+            
+            foreach (var lane in definition.Lanes)
+            {
+                DrawRegion(lane, analyzedFrame.Scene, Scalar.Yellow);
+            }
+            
             foreach (var interestArea in definition.InterestAreas)
             {
                 DrawRegion(interestArea, analyzedFrame.Scene, Scalar.Yellow);
                 var centerPoint = interestArea.GetCenterNormalizedPoint();
                 analyzedFrame.Scene.PutText(interestArea.Name, new Point(centerPoint.OriginalX - 30, centerPoint.OriginalY - 30), HersheyFonts.HersheyPlain, 2.0, Scalar.Yellow);
             }
-            //
-            // foreach (var countLine in definition.CountLines)
-            // {
-            //     DrawLine(countLine.Item1, analyzedFrame.Scene, Scalar.Black);
-            //     DrawLine(countLine.Item2, analyzedFrame.Scene, Scalar.Black);
-            // }
+            
+            foreach (var countLine in definition.CountLines)
+            {
+                DrawLine(countLine.Item1, analyzedFrame.Scene, Scalar.Black);
+                DrawLine(countLine.Item2, analyzedFrame.Scene, Scalar.Black);
+            }
         }
 
         private void DisplayTrajectory(Frame analyzedFrame)

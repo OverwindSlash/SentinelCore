@@ -10,7 +10,10 @@ namespace Detector.YoloV5Onnx
     {
         private YoloPredictor _predictor;
         private List<string> _targetTypes = new();
+        private int _detectionStride = 1;
         private List<string> _names = new();
+
+        private int _detectedCount = 0;
 
         // ROI detection
         private bool _onlyDetectRoi;
@@ -75,6 +78,15 @@ namespace Detector.YoloV5Onnx
 
             Log.Information($"Target types: {targetTypes}");
 
+            if (!initParam.TryGetValue("detection_stride", out var strideStr))
+            {
+                throw new ArgumentException("initParam does not contain detection_stride element.");
+            }
+
+            int.TryParse(strideStr, out _detectionStride);
+
+            Log.Information($"Detection stride: {_detectionStride}");
+
             _predictor = new YoloPredictor(File.ReadAllBytes(modelPath), modelConfig, option);
 
             GenerateClassNames();
@@ -121,10 +133,15 @@ namespace Detector.YoloV5Onnx
 
         public List<BoundingBox> Detect(Mat image, float thresh = 0.5f)
         {
+            if (_detectedCount++ % _detectionStride != 0)
+            {
+                return new List<BoundingBox>();
+            }
+
             var inputImage = GenerateRoiImage(image);
 
             YoloPrediction[] detectedObjects = _predictor.Predict(inputImage, thresh, _targetTypes).ToArray();
-
+            
             return GenerateBoundingBoxes(detectedObjects);
         }
 
@@ -171,6 +188,11 @@ namespace Detector.YoloV5Onnx
 
         public List<BoundingBox> Detect(byte[] imageData, float thresh = 0.5f)
         {
+            if (_detectedCount++ % _detectionStride != 0)
+            {
+                return new List<BoundingBox>();
+            }
+
             using MemoryStream stream = new MemoryStream(imageData);
             Mat image = Mat.FromStream(stream, ImreadModes.Color);
 
@@ -182,6 +204,11 @@ namespace Detector.YoloV5Onnx
 
         public List<BoundingBox> Detect(string imageFile, float thresh = 0.5f)
         {
+            if (_detectedCount++ % _detectionStride != 0)
+            {
+                return new List<BoundingBox>();
+            }
+
             Mat image = Cv2.ImRead(imageFile, ImreadModes.Color);
 
             var inputImage = GenerateRoiImage(image);

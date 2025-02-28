@@ -3,7 +3,7 @@
     "DeviceName": "CameraId001",
     //"Uri": "rtsp://admin:CS%40202304@192.168.1.151:554/Streaming/Channels/101?transportmode=unicast&profile=Profile_1",
     //"Uri": "rtsp://192.168.1.176:5554/PHQ-Profile_201",
-    "Uri": "D:\\video\\Ship\\phq-2.mp4",
+    "Uri": "D:\\video\\Ship\\suzhou.ts",
     "FrameLifetime": 200,
     "EnableDebugDisplay": true
   },
@@ -13,7 +13,7 @@
     "AssemblyFile": "MediaLoader.OpenCV.dll",
     "FullQualifiedClassName": "MediaLoader.OpenCV.VideoLoader",
     "BufferSize": 300,
-    "VideoStride": 2,
+    "VideoStride": 1,
     "Preferences": {
       "LibrariesPath": "runtimes\\win-x64\\ffmpeg"
       //"LibrariesPath": "/usr/lib/x86_64-linux-gnu"
@@ -32,10 +32,11 @@
     "ModelConfig": "Models/yolov11.json",
     "UseCuda": true,
     "GpuId": 0,
-    "Thresh": 0.05,
+    "Thresh": 0.3,
     "TargetTypes": "boat",
+    "DetectionStride": 8,
     "Preferences": {
-      "OnlyDetectRoi": true,
+      "OnlyDetectRoi": false,
       "RoiX": 1452,
       "RoiY": 656,
       "RoiWidth": 1009,
@@ -60,7 +61,7 @@
   "RegionManager": {
     "AssemblyFile": "RegionManager.DefinitionBased.dll",
     "FullQualifiedClassName": "RegionManager.DefinitionBased.RegionManager",
-    "DefinitionFilePath": "hk-demo.json",
+    "DefinitionFilePath": "suzhou-demo.json",
     "Preferences": {
     }
   },
